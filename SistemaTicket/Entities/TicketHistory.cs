@@ -8,7 +8,7 @@ public class TicketHistory
     public TicketStatus OldStatus { get; set; }
     public TicketStatus NewStatus { get; set; }
     public DateTime ChangeAt { get; set; }
-    public string ChangeById { get; set; } = null!;
+    public string ChangeById { get; set; } = string.Empty;
     public int TicketId { get; set; }
     public ApplicationUser ChangeBy { get; set; } = new();
     public Ticket Ticket { get; set; } = null!;

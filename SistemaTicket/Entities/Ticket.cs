@@ -9,14 +9,14 @@ public class Ticket
 
     [Required]
     [StringLength(200, MinimumLength = 5)]
-    public string Title { get; set; } = null!;
+    public string Title { get; set; } = string.Empty;
 
     [Required]
-    public string Description { get; set; } = null!;
+    public string Description { get; set; } = string.Empty;
     public TicketStatus Status { get; set; }
     public TicketPriority Priority { get; set; }
     public DateTime CreatedAt { get; set; }
-    public string CreatedById { get; set; } = null!;
+    public string CreatedById { get; set; } = string.Empty;
     public ApplicationUser CreatedBy { get; set; } = new();
     public List<TicketComment> TicketComments { get; set; } = new();
     public List<TicketHistory> TicketHistory { get; set; } = new();

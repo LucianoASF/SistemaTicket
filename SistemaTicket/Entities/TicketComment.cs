@@ -7,10 +7,10 @@ public class TicketComment
     public int Id { get; set; }
 
     [Required]
-    public string Message { get; set; } = null!;
+    public string Message { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public int TicketId { get; set; }
-    public string UserId { get; set; } = null!;
+    public string UserId { get; set; } = string.Empty;
     public Ticket Ticket { get; set; } = null!;
     public ApplicationUser User { get; set; } = null!;
 
