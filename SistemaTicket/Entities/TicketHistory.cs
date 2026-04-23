@@ -8,9 +8,9 @@ public class TicketHistory
     public TicketStatus OldStatus { get; set; }
     public TicketStatus NewStatus { get; set; }
     public DateTime ChangeAt { get; set; }
-    public int ChangeById { get; set; }
+    public string ChangeById { get; set; } = null!;
     public int TicketId { get; set; }
-    public User ChangeBy { get; set; } = new();
+    public ApplicationUser ChangeBy { get; set; } = new();
     public Ticket Ticket { get; set; } = null!;
 
 }

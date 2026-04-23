@@ -16,8 +16,8 @@ public class Ticket
     public TicketStatus Status { get; set; }
     public TicketPriority Priority { get; set; }
     public DateTime CreatedAt { get; set; }
-    public int CreatedById { get; set; }
-    public User CreatedBy { get; set; } = new();
+    public string CreatedById { get; set; } = null!;
+    public ApplicationUser CreatedBy { get; set; } = new();
     public List<TicketComment> TicketComments { get; set; } = new();
     public List<TicketHistory> TicketHistory { get; set; } = new();
 }

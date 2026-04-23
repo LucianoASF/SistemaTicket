@@ -10,9 +10,9 @@ public class TicketComment
     public string Message { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
     public int TicketId { get; set; }
-    public int UserId { get; set; }
+    public string UserId { get; set; } = null!;
     public Ticket Ticket { get; set; } = null!;
-    public User User { get; set; } = null!;
+    public ApplicationUser User { get; set; } = null!;
 
 
 }
