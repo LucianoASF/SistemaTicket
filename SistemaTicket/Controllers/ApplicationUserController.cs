@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaTicket.Dtos.ApplicationUser;
 using SistemaTicket.Services;
@@ -15,7 +16,7 @@ public class ApplicationUserController : ControllerBase
     {
         _applicationUserService = applicationUserService;
     }
-
+    [Authorize(Roles = ("Admin"))]
     [HttpPost]
     public async Task<ActionResult<ApplicationUserResponseDto>> Create(ApplicationUserCreateDto dto)
     {
