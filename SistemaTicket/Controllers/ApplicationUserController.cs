@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
 using SistemaTicket.Dtos.ApplicationUser;
-using SistemaTicket.Exceptions;
 using SistemaTicket.Services;
 
 namespace SistemaTicket.Controllers;
@@ -19,15 +19,9 @@ public class ApplicationUserController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ApplicationUserResponseDto>> Create(ApplicationUserCreateDto dto)
     {
-        try
-        {
-            var result = await _applicationUserService.Create(dto);
-            return Ok(result);
-        }
-        catch (BadRequestException e)
-        {
-            return BadRequest(new { message = e.Message, errors = e.Errors });
-        }
+        var result = await _applicationUserService.Create(dto);
+        //         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        return StatusCode(201, new { status = 201, result });
     }
 
 }

@@ -2,6 +2,7 @@
 using SistemaTicket.Dtos.ApplicationUser;
 using SistemaTicket.Entities;
 using SistemaTicket.Exceptions;
+using SistemaTicket.Extentions;
 
 namespace SistemaTicket.Services;
 
@@ -28,8 +29,11 @@ public class ApplicationUserService : IApplicationUserService
         if (!result.Succeeded)
         {
             var errors = result.Errors
-                .Select(e => e.Description)
-                .ToList();
+                .GroupBy(e => e.ToFieldName())
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(e => e.Description).ToArray()
+                );
 
             throw new BadRequestException(errors);
         }

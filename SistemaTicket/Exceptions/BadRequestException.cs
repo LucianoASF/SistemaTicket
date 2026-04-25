@@ -1,14 +1,5 @@
 ﻿namespace SistemaTicket.Exceptions;
 
-public class BadRequestException : AppException
+public class BadRequestException(Dictionary<string, string[]> errors) : ErrorsAppException("Validation error", 400, errors)
 {
-    public List<string> Errors { get; }
-
-    public BadRequestException(List<string> errors)
-        : base("Validation error", 400)
-    {
-        Errors = errors;
-    }
-
-
 }
