@@ -22,8 +22,8 @@ builder.Services.AddControllers()
             var errors = context.ModelState
                 .Where(e => e.Value!.Errors.Count > 0)
                 .ToDictionary(
-                    e => e.Key,
-                    e => e.Value!.Errors.Select(x => x.ErrorMessage)
+                    e => e.Key.ToLowerInvariant(),
+                    e => e.Value!.Errors.Select(x => x.ErrorMessage).ToList()
                 );
 
             var response = new
