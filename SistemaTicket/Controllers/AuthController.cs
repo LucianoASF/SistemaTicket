@@ -29,4 +29,11 @@ public class AuthController : ControllerBase
 
         return NoContent();
     }
+    [HttpPost("logout")]
+    public ActionResult Logout()
+    {
+        Response.Cookies.Delete("auth_token");
+
+        return NoContent();
+    }
 }
