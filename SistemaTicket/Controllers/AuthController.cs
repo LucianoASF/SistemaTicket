@@ -4,7 +4,7 @@ using SistemaTicket.Services;
 
 namespace SistemaTicket.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/auth")]
 [ApiController]
 public class AuthController : ControllerBase
 {
@@ -15,7 +15,7 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
-    [HttpPost("Login")]
+    [HttpPost("login")]
     public async Task<ActionResult> Login(LoginRequestDto dto)
     {
         var response = await _authService.Login(dto);

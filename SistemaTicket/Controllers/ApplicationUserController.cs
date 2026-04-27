@@ -6,7 +6,7 @@ using SistemaTicket.Services;
 
 namespace SistemaTicket.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/users")]
 [ApiController]
 public class ApplicationUserController : ControllerBase
 {
