@@ -52,4 +52,12 @@ public class ApplicationUserController : ControllerBase
         }
         return Ok(await _applicationUserService.Update(id, dto, isAdmin));
     }
+
+    [Authorize(Roles = ("Admin"))]
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> Delete(string id)
+    {
+        await _applicationUserService.Delete(id);
+        return NoContent();
+    }
 }

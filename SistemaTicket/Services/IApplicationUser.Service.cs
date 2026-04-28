@@ -8,4 +8,5 @@ public interface IApplicationUserService
     Task<List<ApplicationUserResponseDto>> GetAll(int page);
     Task<ApplicationUserResponseDto> GetById(string id);
     Task<ApplicationUserResponseDto> Update(string id, ApplicationUserUpdateDto applicationUserUpdateDto, bool isAdmin);
+    Task Delete(string id);
 }

@@ -221,4 +221,23 @@ public class ApplicationUserService : IApplicationUserService
             throw;
         }
     }
+    public async Task Delete(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            throw new NotFoundException("User not found.");
+        }
+        var result = await _userManager.DeleteAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors
+                .GroupBy(e => e.ToFieldName())
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(e => e.Description).ToArray()
+                );
+            throw new BadRequestException(errors);
+        }
+    }
 }
