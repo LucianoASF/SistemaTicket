@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using SistemaTicket.Data;
 using SistemaTicket.Dtos.ApplicationUser;
 using SistemaTicket.Entities;
@@ -85,5 +86,37 @@ public class ApplicationUserService : IApplicationUserService
             await transaction.RollbackAsync();
             throw;
         }
+    }
+
+    public async Task<List<ApplicationUserResponseDto>> GetAll(int page)
+    {
+        page = page < 1 ? 1 : page;
+
+        var users = await _userManager
+            .Users
+            .OrderByDescending(u => u.CreatedAt)
+            .Skip((page - 1) * 10)
+            .Take(10)
+            .ToListAsync();
+
+        var userDtos = new List<ApplicationUserResponseDto>();
+
+        foreach (var user in users)
+        {
+            if (string.IsNullOrWhiteSpace(user.Email))
+                throw new InvalidOperationException("Email is null or empty.");
+
+            var roles = await _userManager.GetRolesAsync(user);
+            userDtos.Add(new ApplicationUserResponseDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                CreatedAt = user.CreatedAt,
+                Roles = roles.ToList()
+            });
+        }
+
+        return userDtos;
     }
 }

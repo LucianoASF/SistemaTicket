@@ -25,4 +25,12 @@ public class ApplicationUserController : ControllerBase
         return StatusCode(201, new { status = 201, result });
     }
 
+    [Authorize(Roles = ("Admin"))]
+    [HttpGet]
+    public async Task<ActionResult<List<ApplicationUserResponseDto>>> GetAll([FromQuery] int page)
+    {
+        return Ok(await _applicationUserService.GetAll(page));
+    }
+
+
 }
