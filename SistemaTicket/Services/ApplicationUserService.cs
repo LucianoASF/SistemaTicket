@@ -94,6 +94,7 @@ public class ApplicationUserService : IApplicationUserService
 
         var users = await _userManager
             .Users
+            .AsNoTracking()
             .OrderByDescending(u => u.CreatedAt)
             .Skip((page - 1) * 10)
             .Take(10)
@@ -122,7 +123,7 @@ public class ApplicationUserService : IApplicationUserService
 
     public async Task<ApplicationUserResponseDto> GetById(string id)
     {
-        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
+        var user = await _userManager.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
         if (user == null)
         {
             throw new NotFoundException("User not found.");
