@@ -21,8 +21,7 @@ public class ApplicationUserController : ControllerBase
     public async Task<ActionResult<ApplicationUserResponseDto>> Create(ApplicationUserCreateDto dto)
     {
         var result = await _applicationUserService.Create(dto);
-        //         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-        return StatusCode(201, new { status = 201, result });
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     [Authorize(Roles = ("Admin"))]
@@ -32,5 +31,10 @@ public class ApplicationUserController : ControllerBase
         return Ok(await _applicationUserService.GetAll(page));
     }
 
-
+    [Authorize]
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ApplicationUserResponseDto>> GetById(string id)
+    {
+        return Ok(await _applicationUserService.GetById(id));
+    }
 }

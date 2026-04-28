@@ -36,6 +36,7 @@ public class ExceptionMiddleware
             {
                 BadRequestException => StatusCodes.Status400BadRequest,
                 UnauthorizedException => StatusCodes.Status401Unauthorized,
+                NotFoundException => StatusCodes.Status404NotFound,
                 _ => StatusCodes.Status500InternalServerError
             };
             var response = new Dictionary<string, object>

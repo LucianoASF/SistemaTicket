@@ -119,4 +119,25 @@ public class ApplicationUserService : IApplicationUserService
 
         return userDtos;
     }
+
+    public async Task<ApplicationUserResponseDto> GetById(string id)
+    {
+        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
+        if (user == null)
+        {
+            throw new NotFoundException("User not found.");
+        }
+        if (string.IsNullOrWhiteSpace(user.Email))
+            throw new InvalidOperationException("Email is null or empty.");
+
+        var roles = await _userManager.GetRolesAsync(user);
+        return new ApplicationUserResponseDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            CreatedAt = user.CreatedAt,
+            Roles = roles.ToList()
+        };
+    }
 }
