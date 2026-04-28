@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaTicket.Dtos.ApplicationUser;
 using SistemaTicket.Services;
+using System.Security.Claims;
 
 namespace SistemaTicket.Controllers;
 
@@ -36,5 +37,19 @@ public class ApplicationUserController : ControllerBase
     public async Task<ActionResult<ApplicationUserResponseDto>> GetById(string id)
     {
         return Ok(await _applicationUserService.GetById(id));
+    }
+
+    [Authorize]
+    [HttpPatch("{id}")]
+    public async Task<ActionResult<ApplicationUserResponseDto>> Update(string id, ApplicationUserUpdateDto dto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var isAdmin = User.IsInRole("Admin");
+
+        if (!isAdmin && userId != id)
+        {
+            return Forbid();
+        }
+        return Ok(await _applicationUserService.Update(id, dto, isAdmin));
     }
 }

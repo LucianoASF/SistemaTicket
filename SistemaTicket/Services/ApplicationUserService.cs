@@ -141,4 +141,84 @@ public class ApplicationUserService : IApplicationUserService
             Roles = roles.ToList()
         };
     }
+    public async Task<ApplicationUserResponseDto> Update(string id, ApplicationUserUpdateDto applicationUserUpdateDto, bool isAdmin)
+    {
+        if (!isAdmin && applicationUserUpdateDto.Roles != null && applicationUserUpdateDto.Roles.Any())
+            throw new ForbiddenException("You cannot change roles.");
+
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            throw new NotFoundException("User not found.");
+        }
+        var currentRoles = await _userManager.GetRolesAsync(user);
+
+        user.Name = applicationUserUpdateDto.Name;
+        user.Email = applicationUserUpdateDto.Email;
+        user.UserName = applicationUserUpdateDto.Email;
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(applicationUserUpdateDto.Password))
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                await _userManager.ResetPasswordAsync(user, token, applicationUserUpdateDto.Password);
+            }
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors
+                    .GroupBy(e => e.ToFieldName())
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.Description).ToArray()
+                    );
+                throw new BadRequestException(errors);
+            }
+
+            if (applicationUserUpdateDto.Roles == null)
+            {
+                applicationUserUpdateDto.Roles = currentRoles.ToList();
+            }
+            applicationUserUpdateDto.Roles = applicationUserUpdateDto.Roles.Select(r => r.ToLower()).Distinct().ToList();
+
+            List<string> invalidRoles = new();
+            foreach (var role in applicationUserUpdateDto.Roles)
+            {
+                if (!await _roleManager.RoleExistsAsync(role))
+                {
+                    invalidRoles.Add(role);
+                }
+            }
+            if (invalidRoles.Count > 0)
+            {
+                throw new BadRequestException(new Dictionary<string, string[]> { { "roles", invalidRoles.Select(r => $"The role '{r}' does not exist.").ToArray() } });
+            }
+
+            var rolesToAdd = applicationUserUpdateDto.Roles.Except(currentRoles);
+            var rolesToRemove = currentRoles.Except(applicationUserUpdateDto.Roles);
+
+            if (rolesToRemove.Any())
+                await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
+
+            if (rolesToAdd.Any())
+                await _userManager.AddToRolesAsync(user, rolesToAdd);
+            return new ApplicationUserResponseDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                CreatedAt = user.CreatedAt,
+                Roles = applicationUserUpdateDto.Roles
+            };
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
 }
