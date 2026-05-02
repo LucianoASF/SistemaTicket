@@ -206,6 +206,10 @@ public class ApplicationUserService : IApplicationUserService
 
             if (rolesToAdd.Any())
                 await _userManager.AddToRolesAsync(user, rolesToAdd);
+
+            await transaction.CommitAsync();
+
+
             return new ApplicationUserResponseDto
             {
                 Id = user.Id,
