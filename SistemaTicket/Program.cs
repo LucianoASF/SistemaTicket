@@ -7,14 +7,21 @@ using SistemaTicket.Data;
 using SistemaTicket.Data.Seed;
 using SistemaTicket.Entities;
 using SistemaTicket.Middlewares;
+using SistemaTicket.Repositories;
 using SistemaTicket.Services;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers()
+     .AddJsonOptions(options =>
+     {
+         options.JsonSerializerOptions.Converters.Add(
+             new JsonStringEnumConverter());
+     })
     .ConfigureApiBehaviorOptions(options =>
     {
         options.InvalidModelStateResponseFactory = context =>
@@ -40,6 +47,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IApplicationUserService, ApplicationUserService>();
+
+builder.Services.AddScoped<ITicketRepository, TicketRepository>();
+builder.Services.AddScoped<ITicketService, TicketService>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 
