@@ -1,6 +1,6 @@
-﻿using SistemaTicket.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using SistemaTicket.Data;
 using SistemaTicket.Entities;
-
 namespace SistemaTicket.Repositories;
 
 public class TicketRepository : ITicketRepository
@@ -19,9 +19,14 @@ public class TicketRepository : ITicketRepository
         return ticket;
     }
 
-    public Task<List<Ticket>> GetAll()
+    public async Task<List<Ticket>> GetAll(int page)
     {
-        throw new NotImplementedException();
+        return await _context.Tickets
+            .AsNoTracking()
+            .OrderByDescending(u => u.CreatedAt)
+            .Skip((page - 1) * 10)
+            .Take(30)
+            .ToListAsync();
     }
 
     public Task<Ticket> GetById(int id)

@@ -29,4 +29,13 @@ public class TicketController : ControllerBase
         var isUser = User.IsInRole("User");
         return StatusCode(201, await _ticketService.Create(dto, userId, isUser));
     }
+
+    [Authorize(Roles = "Admin, Support")]
+    [HttpGet]
+    public async Task<ActionResult<List<TicketResponseDto>>> GetAll([FromQuery] int page)
+    {
+        return Ok(await _ticketService.GetAll(page));
+    }
+
 }
+

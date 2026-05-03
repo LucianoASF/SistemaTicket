@@ -49,4 +49,28 @@ public class TicketService : ITicketService
             CreatedById = response.CreatedById
         };
     }
+
+    public async Task<List<TicketResponseDto>> GetAll(int page)
+    {
+        page = page < 1 ? 1 : page;
+        var tickets = await _ticketRepository.GetAll(page);
+        List<TicketResponseDto> response = new();
+
+        foreach (var ticket in tickets)
+        {
+            response.Add(new TicketResponseDto
+            {
+                Id = ticket.Id,
+                Title = ticket.Title,
+                Description = ticket.Description,
+                Status = ticket.Status,
+                Priority = ticket.Priority,
+                CreatedAt = ticket.CreatedAt,
+                CreatedById = ticket.CreatedById
+            });
+        }
+
+        return response;
+    }
+
 }
