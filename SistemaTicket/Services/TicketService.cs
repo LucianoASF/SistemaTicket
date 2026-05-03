@@ -73,4 +73,26 @@ public class TicketService : ITicketService
         return response;
     }
 
+    public async Task<TicketResponseDto> GetByIdAsync(int id, string userId, bool isUser)
+    {
+        var ticket = await _ticketRepository.GetByIdAsync(id);
+        if (ticket == null)
+        {
+            throw new NotFoundException("ticket not found");
+        }
+        if (ticket.CreatedById != userId && isUser)
+        {
+            throw new ForbiddenException("you are not authorized to view this ticket");
+        }
+        return new TicketResponseDto
+        {
+            Id = ticket.Id,
+            Title = ticket.Title,
+            Description = ticket.Description,
+            Status = ticket.Status,
+            Priority = ticket.Priority,
+            CreatedAt = ticket.CreatedAt,
+            CreatedById = ticket.CreatedById
+        };
+    }
 }

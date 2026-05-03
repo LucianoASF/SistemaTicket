@@ -29,9 +29,9 @@ public class TicketRepository : ITicketRepository
             .ToListAsync();
     }
 
-    public Task<Ticket> GetByIdAsync(int id)
+    public async Task<Ticket> GetByIdAsync(int id)
     {
-        throw new NotImplementedException();
+        return await _context.Tickets.FirstOrDefaultAsync(t => t.Id == id);
     }
 
     public Task UpdateAsync(Ticket ticket)
