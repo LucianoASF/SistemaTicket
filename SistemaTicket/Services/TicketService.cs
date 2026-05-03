@@ -17,11 +17,6 @@ public class TicketService : ITicketService
 
     public async Task<TicketResponseDto> CreateAsync(TicketCreateDto ticketCreateDto, string userId, bool isUser)
     {
-        if (!Enum.IsDefined(ticketCreateDto.Priority))
-        {
-            throw new BadRequestException(new Dictionary<string, string[]>() { { "priority", ["that priority does not exist"] } });
-        }
-
         if (isUser)
         {
             ticketCreateDto.Priority = TicketPriority.Low;
@@ -32,7 +27,7 @@ public class TicketService : ITicketService
             Title = ticketCreateDto.Title,
             Description = ticketCreateDto.Description,
             Status = TicketStatus.Open,
-            Priority = ticketCreateDto.Priority,
+            Priority = VerifyPriority(ticketCreateDto.Priority),
             CreatedAt = DateTime.UtcNow,
             CreatedById = userId
         };
@@ -75,15 +70,8 @@ public class TicketService : ITicketService
 
     public async Task<TicketResponseDto> GetByIdAsync(int id, string userId, bool isUser)
     {
-        var ticket = await _ticketRepository.GetByIdAsync(id);
-        if (ticket == null)
-        {
-            throw new NotFoundException("ticket not found");
-        }
-        if (ticket.CreatedById != userId && isUser)
-        {
-            throw new ForbiddenException("you are not authorized to view this ticket");
-        }
+        var ticket = await GetTicketOrThrowAsync(id, userId, isUser);
+
         return new TicketResponseDto
         {
             Id = ticket.Id,
@@ -94,5 +82,62 @@ public class TicketService : ITicketService
             CreatedAt = ticket.CreatedAt,
             CreatedById = ticket.CreatedById
         };
+    }
+
+    public async Task<TicketResponseDto> UpdateAsync(int id, string userId, bool isUser, TicketUpdateDto ticketUpdateDto)
+    {
+        var ticket = await GetTicketOrThrowAsync(id, userId, isUser);
+        ticket.Title = ticketUpdateDto.Title;
+        ticket.Description = ticketUpdateDto.Description;
+
+        if (!isUser)
+        {
+            ticket.Priority = VerifyPriority(ticketUpdateDto.Priority);
+            ticket.Status = VerifyStatus(ticketUpdateDto.Status);
+        }
+
+        await _ticketRepository.SaveAsync();
+
+        return new TicketResponseDto
+        {
+            Id = ticket.Id,
+            Title = ticket.Title,
+            Description = ticket.Description,
+            Status = ticket.Status,
+            Priority = ticket.Priority,
+            CreatedAt = ticket.CreatedAt,
+            CreatedById = ticket.CreatedById
+        };
+    }
+
+    private async Task<Ticket> GetTicketOrThrowAsync(int id, string userId, bool isUser)
+    {
+        var ticket = await _ticketRepository.GetByIdAsync(id);
+        if (ticket == null)
+        {
+            throw new NotFoundException("ticket not found");
+        }
+        if (ticket.CreatedById != userId && isUser)
+        {
+            throw new ForbiddenException("you are not authorized to access this ticket");
+        }
+        return ticket;
+    }
+
+    private TicketPriority VerifyPriority(TicketPriority? priority)
+    {
+        if (!priority.HasValue || !Enum.IsDefined(priority.Value))
+        {
+            throw new BadRequestException(new Dictionary<string, string[]>() { { "priority", ["that priority does not exist"] } });
+        }
+        return priority.Value;
+    }
+    private TicketStatus VerifyStatus(TicketStatus? status)
+    {
+        if (!status.HasValue || !Enum.IsDefined(status.Value))
+        {
+            throw new BadRequestException(new Dictionary<string, string[]>() { { "status", ["that status does not exist"] } });
+        }
+        return status.Value;
     }
 }

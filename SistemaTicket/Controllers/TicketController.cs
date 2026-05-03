@@ -51,5 +51,18 @@ public class TicketController : ControllerBase
         return Ok(await _ticketService.GetByIdAsync(id, userId, isUser));
     }
 
+    [Authorize]
+    [HttpPatch("{id}")]
+    public async Task<ActionResult<TicketResponseDto>> UpdateAsync(int id, TicketUpdateDto dto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+        var isUser = User.IsInRole("User");
+        return Ok(await _ticketService.UpdateAsync(id, userId, isUser, dto));
+    }
+
 }
 

@@ -29,14 +29,14 @@ public class TicketRepository : ITicketRepository
             .ToListAsync();
     }
 
-    public async Task<Ticket> GetByIdAsync(int id)
+    public async Task<Ticket?> GetByIdAsync(int id)
     {
         return await _context.Tickets.FirstOrDefaultAsync(t => t.Id == id);
     }
 
-    public Task UpdateAsync(Ticket ticket)
+    public async Task SaveAsync()
     {
-        throw new NotImplementedException();
+        await _context.SaveChangesAsync();
     }
     public Task DeleteAsync(int id)
     {
