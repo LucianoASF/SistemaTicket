@@ -4,5 +4,5 @@ namespace SistemaTicket.Services;
 
 public interface IAuthService
 {
-    Task<LoginResponseDto> Login(LoginRequestDto dto);
+    Task<LoginResponseDto> LoginAsync(LoginRequestDto dto);
 }

@@ -19,7 +19,7 @@ public class TicketController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<ActionResult<TicketResponseDto>> Create(TicketCreateDto dto)
+    public async Task<ActionResult<TicketResponseDto>> CreateAsync(TicketCreateDto dto)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null)
@@ -27,14 +27,14 @@ public class TicketController : ControllerBase
             return Unauthorized();
         }
         var isUser = User.IsInRole("User");
-        return StatusCode(201, await _ticketService.Create(dto, userId, isUser));
+        return StatusCode(201, await _ticketService.CreateAsync(dto, userId, isUser));
     }
 
     [Authorize(Roles = "Admin, Support")]
     [HttpGet]
-    public async Task<ActionResult<List<TicketResponseDto>>> GetAll([FromQuery] int page)
+    public async Task<ActionResult<List<TicketResponseDto>>> GetAllAsync([FromQuery] int page)
     {
-        return Ok(await _ticketService.GetAll(page));
+        return Ok(await _ticketService.GetAllAsync(page));
     }
 
 }

@@ -4,9 +4,9 @@ namespace SistemaTicket.Repositories;
 
 public interface ITicketRepository
 {
-    Task<Ticket> Create(Ticket ticket);
-    Task<Ticket> GetById(int id);
-    Task<List<Ticket>> GetAll(int page);
-    Task Update(Ticket ticket);
-    Task Delete(int id);
+    Task<Ticket> CreateAsync(Ticket ticket);
+    Task<Ticket> GetByIdAsync(int id);
+    Task<List<Ticket>> GetAllAsync(int page);
+    Task UpdateAsync(Ticket ticket);
+    Task DeleteAsync(int id);
 }

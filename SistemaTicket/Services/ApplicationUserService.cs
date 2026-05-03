@@ -20,7 +20,7 @@ public class ApplicationUserService : IApplicationUserService
         _roleManager = roleManager;
         _context = context;
     }
-    public async Task<ApplicationUserResponseDto> Create(ApplicationUserCreateDto applicationUserCreateDto)
+    public async Task<ApplicationUserResponseDto> CreateAsync(ApplicationUserCreateDto applicationUserCreateDto)
     {
         var applicationUser = new ApplicationUser
         {
@@ -88,7 +88,7 @@ public class ApplicationUserService : IApplicationUserService
         }
     }
 
-    public async Task<List<ApplicationUserResponseDto>> GetAll(int page)
+    public async Task<List<ApplicationUserResponseDto>> GetAllAsync(int page)
     {
         page = page < 1 ? 1 : page;
 
@@ -121,7 +121,7 @@ public class ApplicationUserService : IApplicationUserService
         return userDtos;
     }
 
-    public async Task<ApplicationUserResponseDto> GetById(string id)
+    public async Task<ApplicationUserResponseDto> GetByIdAsync(string id)
     {
         var user = await _userManager.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
         if (user == null)
@@ -141,7 +141,7 @@ public class ApplicationUserService : IApplicationUserService
             Roles = roles.ToList()
         };
     }
-    public async Task<ApplicationUserResponseDto> Update(string id, ApplicationUserUpdateDto applicationUserUpdateDto, bool isAdmin)
+    public async Task<ApplicationUserResponseDto> UpdateAsync(string id, ApplicationUserUpdateDto applicationUserUpdateDto, bool isAdmin)
     {
         if (!isAdmin && applicationUserUpdateDto.Roles != null && applicationUserUpdateDto.Roles.Any())
             throw new ForbiddenException("You cannot change roles.");
@@ -225,7 +225,7 @@ public class ApplicationUserService : IApplicationUserService
             throw;
         }
     }
-    public async Task Delete(string id)
+    public async Task DeleteAsync(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)

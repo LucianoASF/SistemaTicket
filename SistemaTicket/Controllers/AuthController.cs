@@ -16,9 +16,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult> Login(LoginRequestDto dto)
+    public async Task<ActionResult> LoginAsync(LoginRequestDto dto)
     {
-        var response = await _authService.Login(dto);
+        var response = await _authService.LoginAsync(dto);
         Response.Cookies.Append("auth_token", response.Token, new CookieOptions
         {
             HttpOnly = true,

@@ -15,7 +15,7 @@ public class TicketService : ITicketService
         _ticketRepository = ticketRepository;
     }
 
-    public async Task<TicketResponseDto> Create(TicketCreateDto ticketCreateDto, string userId, bool isUser)
+    public async Task<TicketResponseDto> CreateAsync(TicketCreateDto ticketCreateDto, string userId, bool isUser)
     {
         if (!Enum.IsDefined(ticketCreateDto.Priority))
         {
@@ -37,7 +37,7 @@ public class TicketService : ITicketService
             CreatedById = userId
         };
 
-        var response = await _ticketRepository.Create(newTicket);
+        var response = await _ticketRepository.CreateAsync(newTicket);
         return new TicketResponseDto
         {
             Id = response.Id,
@@ -50,10 +50,10 @@ public class TicketService : ITicketService
         };
     }
 
-    public async Task<List<TicketResponseDto>> GetAll(int page)
+    public async Task<List<TicketResponseDto>> GetAllAsync(int page)
     {
         page = page < 1 ? 1 : page;
-        var tickets = await _ticketRepository.GetAll(page);
+        var tickets = await _ticketRepository.GetAllAsync(page);
         List<TicketResponseDto> response = new();
 
         foreach (var ticket in tickets)

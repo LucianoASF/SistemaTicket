@@ -21,7 +21,7 @@ public class AuthService : IAuthService
         _config = config;
     }
 
-    public async Task<LoginResponseDto> Login(LoginRequestDto dto)
+    public async Task<LoginResponseDto> LoginAsync(LoginRequestDto dto)
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
@@ -29,9 +29,9 @@ public class AuthService : IAuthService
             throw new UnauthorizedException("Invalid email or password.");
         }
 
-        return await GenerateJwtToken(user);
+        return await GenerateJwtTokenAsync(user);
     }
-    private async Task<LoginResponseDto> GenerateJwtToken(ApplicationUser user)
+    private async Task<LoginResponseDto> GenerateJwtTokenAsync(ApplicationUser user)
     {
         var keyString = _config["Jwt:Key"];
         var ExpireMinutesString = _config["Jwt:ExpireMinutes"];

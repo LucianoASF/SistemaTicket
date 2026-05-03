@@ -12,14 +12,14 @@ public class TicketRepository : ITicketRepository
     {
         _context = context;
     }
-    public async Task<Ticket> Create(Ticket ticket)
+    public async Task<Ticket> CreateAsync(Ticket ticket)
     {
         _context.Tickets.Add(ticket);
         await _context.SaveChangesAsync();
         return ticket;
     }
 
-    public async Task<List<Ticket>> GetAll(int page)
+    public async Task<List<Ticket>> GetAllAsync(int page)
     {
         return await _context.Tickets
             .AsNoTracking()
@@ -29,16 +29,16 @@ public class TicketRepository : ITicketRepository
             .ToListAsync();
     }
 
-    public Task<Ticket> GetById(int id)
+    public Task<Ticket> GetByIdAsync(int id)
     {
         throw new NotImplementedException();
     }
 
-    public Task Update(Ticket ticket)
+    public Task UpdateAsync(Ticket ticket)
     {
         throw new NotImplementedException();
     }
-    public Task Delete(int id)
+    public Task DeleteAsync(int id)
     {
         throw new NotImplementedException();
     }
