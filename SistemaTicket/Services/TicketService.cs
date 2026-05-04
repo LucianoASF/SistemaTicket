@@ -109,6 +109,12 @@ public class TicketService : ITicketService
             CreatedById = ticket.CreatedById
         };
     }
+    public async Task DeleteAsync(int id, string userId, bool isUser)
+    {
+        var ticket = await GetTicketOrThrowAsync(id, userId, isUser);
+        _ticketRepository.Delete(ticket);
+        await _ticketRepository.SaveAsync();
+    }
 
     private async Task<Ticket> GetTicketOrThrowAsync(int id, string userId, bool isUser)
     {

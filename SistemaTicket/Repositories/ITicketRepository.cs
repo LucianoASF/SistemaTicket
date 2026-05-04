@@ -8,5 +8,5 @@ public interface ITicketRepository
     Task<Ticket?> GetByIdAsync(int id);
     Task<List<Ticket>> GetAllAsync(int page);
     Task SaveAsync();
-    Task DeleteAsync(int id);
+    void Delete(Ticket ticket);
 }

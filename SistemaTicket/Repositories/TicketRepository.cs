@@ -38,9 +38,9 @@ public class TicketRepository : ITicketRepository
     {
         await _context.SaveChangesAsync();
     }
-    public Task DeleteAsync(int id)
+    public void Delete(Ticket ticket)
     {
-        throw new NotImplementedException();
+        _context.Tickets.Remove(ticket);
     }
 
 }

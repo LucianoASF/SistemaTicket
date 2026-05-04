@@ -8,4 +8,5 @@ public interface ITicketService
     Task<List<TicketResponseDto>> GetAllAsync(int page);
     Task<TicketResponseDto> GetByIdAsync(int id, string userId, bool isUser);
     Task<TicketResponseDto> UpdateAsync(int id, string userId, bool isUser, TicketUpdateDto ticketUpdateDto);
+    Task DeleteAsync(int id, string userId, bool isUser);
 }

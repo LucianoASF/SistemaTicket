@@ -63,6 +63,18 @@ public class TicketController : ControllerBase
         var isUser = User.IsInRole("User");
         return Ok(await _ticketService.UpdateAsync(id, userId, isUser, dto));
     }
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteAsync(int id)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+        await _ticketService.DeleteAsync(id, userId, false);
+        return NoContent();
+    }
 
 }
 
