@@ -227,21 +227,45 @@ public class ApplicationUserService : IApplicationUserService
     }
     public async Task DeleteAsync(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
-        if (user == null)
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            throw new NotFoundException("User not found.");
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                throw new NotFoundException("User not found.");
+            }
+
+            await _context.TicketComments
+                .Where(tc => tc.UserId == id)
+                .ExecuteDeleteAsync();
+
+            await _context.TicketHistories
+                .Where(th => th.ChangeById == id)
+                .ExecuteDeleteAsync();
+
+            await _context.Tickets
+                .Where(t => t.CreatedById == id)
+                .ExecuteDeleteAsync();
+
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors
+                    .GroupBy(e => e.ToFieldName())
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.Description).ToArray()
+                    );
+                throw new BadRequestException(errors);
+            }
+            await transaction.CommitAsync();
         }
-        var result = await _userManager.DeleteAsync(user);
-        if (!result.Succeeded)
+        catch (Exception)
         {
-            var errors = result.Errors
-                .GroupBy(e => e.ToFieldName())
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Select(e => e.Description).ToArray()
-                );
-            throw new BadRequestException(errors);
+            await transaction.RollbackAsync();
+            throw;
         }
+
     }
 }
