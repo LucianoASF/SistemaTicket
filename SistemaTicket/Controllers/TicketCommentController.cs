@@ -28,7 +28,7 @@ public class TicketCommentController : ControllerBase
         }
         var isUser = User.IsInRole("User");
         var result = await _ticketCommentService.CreateAsync(ticketCommentRequestDto, userId, ticketId, isUser);
-        return StatusCode(201, result);
+        return CreatedAtAction("GetById", new { id = result.Id, ticketId = ticketId }, result);
     }
 
     [Authorize]
