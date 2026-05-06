@@ -28,4 +28,11 @@ public class TicketCommentRepository : ITicketCommentRepository
            .Take(5)
            .ToListAsync();
     }
+
+    public async Task<TicketComment?> GetByIdAsync(int id, int ticketId)
+    {
+        return await _context.TicketComments
+            .Where(tc => tc.TicketId == ticketId)
+            .FirstOrDefaultAsync(tc => tc.Id == id);
+    }
 }
