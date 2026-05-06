@@ -58,4 +58,17 @@ public class TicketCommentController : ControllerBase
         var result = await _ticketCommentService.GetByIdAsync(id, ticketId, userId, isUser);
         return Ok(result);
     }
+    [Authorize]
+    [HttpPut("{id}")]
+    public async Task<ActionResult<TicketCommentResponseDto>> UpdateAsync(TicketCommentRequestDto dto, int id, int ticketId)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+        var isUser = User.IsInRole("User");
+        var result = await _ticketCommentService.UpdateAsync(dto, id, userId, ticketId, isUser);
+        return Ok(result);
+    }
 }

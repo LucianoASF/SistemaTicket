@@ -35,4 +35,9 @@ public class TicketCommentRepository : ITicketCommentRepository
             .Where(tc => tc.TicketId == ticketId)
             .FirstOrDefaultAsync(tc => tc.Id == id);
     }
+
+    public async Task SaveAsync()
+    {
+        await _context.SaveChangesAsync();
+    }
 }

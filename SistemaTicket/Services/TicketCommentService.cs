@@ -70,6 +70,22 @@ public class TicketCommentService : ITicketCommentService
             TicketId = ticketComment.TicketId
         };
     }
+    public async Task<TicketCommentResponseDto> UpdateAsync(TicketCommentRequestDto ticketCommentRequestDto, int id, string userId, int ticketId, bool isUser)
+    {
+        await GetTicketAsync(ticketId, userId, isUser);
+
+        var ticketComment = await _ticketCommentRepository.GetByIdAsync(id, ticketId) ?? throw new NotFoundException("Ticket comment not found");
+        ticketComment.Message = ticketCommentRequestDto.Message;
+        await _ticketCommentRepository.SaveAsync();
+        return new TicketCommentResponseDto
+        {
+            Id = ticketComment.Id,
+            Message = ticketComment.Message,
+            UserId = ticketComment.UserId,
+            TicketId = ticketComment.TicketId,
+            CreatedAt = ticketComment.CreatedAt
+        };
+    }
 
     private async Task<Ticket> GetTicketAsync(int ticketId, string userId, bool isUser)
     {
