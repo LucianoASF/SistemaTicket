@@ -31,5 +31,19 @@ public class TicketCommentController : ControllerBase
         return StatusCode(201, result);
     }
 
+    [Authorize]
+    [HttpGet]
+    public async Task<ActionResult<List<TicketCommentResponseDto>>> GetAllByTicketAsync(int ticketId, [FromQuery] int page)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+        var isUser = User.IsInRole("User");
+        var result = await _ticketCommentService.GetAllByTicketAsync(ticketId, userId, isUser, page);
+        return Ok(result);
+    }
+
 
 }

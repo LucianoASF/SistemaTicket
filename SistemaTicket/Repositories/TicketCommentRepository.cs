@@ -1,4 +1,5 @@
-﻿using SistemaTicket.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using SistemaTicket.Data;
 using SistemaTicket.Entities;
 
 namespace SistemaTicket.Repositories;
@@ -15,5 +16,16 @@ public class TicketCommentRepository : ITicketCommentRepository
         _context.TicketComments.Add(ticketComment);
         await _context.SaveChangesAsync();
         return ticketComment;
+    }
+
+    public async Task<List<TicketComment>> GetAllByTicketAsync(int ticketId, int page)
+    {
+        return await _context.TicketComments
+           .AsNoTracking()
+           .Where(tc => tc.TicketId == ticketId)
+           .OrderByDescending(u => u.CreatedAt)
+           .Skip((page - 1) * 5)
+           .Take(5)
+           .ToListAsync();
     }
 }

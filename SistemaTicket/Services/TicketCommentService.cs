@@ -17,11 +17,7 @@ public class TicketCommentService : ITicketCommentService
     }
     public async Task<TicketCommentResponseDto> CreateAsync(TicketCommentRequestDto ticketCommentRequestDto, string userId, int ticketId, bool isUser)
     {
-        var ticket = await _ticketRepository.GetByIdAsync(ticketId) ?? throw new NotFoundException("Ticket not found");
-        if (isUser && userId != ticket.CreatedById)
-        {
-            throw new ForbiddenException("You are not authorized to comment on this ticket");
-        }
+        await GetTicketAsync(ticketId, userId, isUser);
         TicketComment ticketComment = new()
         {
             Message = ticketCommentRequestDto.Message,
@@ -39,4 +35,37 @@ public class TicketCommentService : ITicketCommentService
             TicketId = response.TicketId
         };
     }
+
+    public async Task<List<TicketCommentResponseDto>> GetAllByTicketAsync(int ticketId, string userId, bool isUser, int page)
+    {
+        var ticket = await GetTicketAsync(ticketId, userId, isUser);
+        page = page < 1 ? 1 : page;
+        var tiketComments = await _ticketCommentRepository.GetAllByTicketAsync(ticketId, page);
+        List<TicketCommentResponseDto> response = new();
+        foreach (var ticketComment in tiketComments)
+        {
+            response.Add(new TicketCommentResponseDto
+            {
+                Id = ticketComment.Id,
+                Message = ticketComment.Message,
+                CreatedAt = ticketComment.CreatedAt,
+                UserId = ticketComment.UserId,
+                TicketId = ticketComment.TicketId
+            });
+        }
+        return response;
+    }
+
+    private async Task<Ticket> GetTicketAsync(int ticketId, string userId, bool isUser)
+    {
+        var ticket = await _ticketRepository.GetByIdAsync(ticketId) ?? throw new NotFoundException("Ticket not found");
+        if (isUser && userId != ticket.CreatedById)
+        {
+            throw new ForbiddenException("You are not authorized to access comments on this ticket");
+        }
+        return ticket;
+    }
+
+
+
 }

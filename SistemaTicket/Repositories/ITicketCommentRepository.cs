@@ -5,5 +5,5 @@ namespace SistemaTicket.Repositories;
 public interface ITicketCommentRepository
 {
     Task<TicketComment> CreateAsync(TicketComment ticketComment);
-
+    Task<List<TicketComment>> GetAllByTicketAsync(int ticketId, int page);
 }
