@@ -17,7 +17,7 @@ public class Ticket
     public TicketPriority Priority { get; set; }
     public DateTime CreatedAt { get; set; }
     public string CreatedById { get; set; } = string.Empty;
-    public ApplicationUser CreatedBy { get; set; } = new();
-    public List<TicketComment> TicketComments { get; set; } = new();
-    public List<TicketHistory> TicketHistory { get; set; } = new();
+    public ApplicationUser? CreatedBy { get; set; }
+    public List<TicketComment>? TicketComments { get; set; }
+    public List<TicketHistory>? TicketHistory { get; set; }
 }

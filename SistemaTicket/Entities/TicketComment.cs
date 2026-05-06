@@ -12,7 +12,7 @@ public class TicketComment
     public int TicketId { get; set; }
     public string UserId { get; set; } = string.Empty;
     public Ticket Ticket { get; set; } = null!;
-    public ApplicationUser User { get; set; } = null!;
+    public ApplicationUser? User { get; set; }
 
 
 }
