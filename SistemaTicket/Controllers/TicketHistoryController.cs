@@ -30,4 +30,17 @@ public class TicketHistoryController : ControllerBase
         var ticketHistories = await _ticketHistoryService.GetAllByTicketIdAsync(ticketId, userId, isUser, page);
         return Ok(ticketHistories);
     }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<TicketHistoryResponseDto>> GetByIdAsync(int ticketId, int id)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+        var isUser = User.IsInRole("User");
+        var ticketHistory = await _ticketHistoryService.GetByIdAsync(ticketId, id, userId, isUser);
+        return Ok(ticketHistory);
+    }
 }

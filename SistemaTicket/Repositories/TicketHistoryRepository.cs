@@ -29,4 +29,10 @@ public class TicketHistoryRepository : ITicketHistoryRepository
             .Take(5)
             .ToListAsync();
     }
+
+    public async Task<TicketHistory?> GetByIdAsync(int id)
+    {
+        return await _context.TicketHistories.FirstOrDefaultAsync(th => th.Id == id);
+    }
+
 }

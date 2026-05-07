@@ -32,6 +32,21 @@ public class TicketHistoryService : ITicketHistoryService
         }).ToList();
     }
 
+    public async Task<TicketHistoryResponseDto> GetByIdAsync(int ticketId, int id, string userId, bool isUser)
+    {
+        await GetTicketAsync(ticketId, userId, isUser);
+        var ticketHistory = await _ticketHistoryRepository.GetByIdAsync(id) ?? throw new NotFoundException("Ticket history not found");
+        return new TicketHistoryResponseDto
+        {
+            Id = ticketHistory.Id,
+            OldStatus = ticketHistory.OldStatus,
+            NewStatus = ticketHistory.NewStatus,
+            ChangeAt = ticketHistory.ChangeAt,
+            ChangeById = ticketHistory.ChangeById,
+            TicketId = ticketHistory.TicketId
+        };
+    }
+
     private async Task<Ticket> GetTicketAsync(int ticketId, string userId, bool isUser)
     {
         var ticket = await _ticketRepository.GetByIdAsync(ticketId) ?? throw new NotFoundException("Ticket not found");
