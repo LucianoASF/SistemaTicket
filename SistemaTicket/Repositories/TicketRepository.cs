@@ -23,9 +23,9 @@ public class TicketRepository : ITicketRepository
     {
         return await _context.Tickets
             .AsNoTracking()
-            .OrderByDescending(u => u.CreatedAt)
+            .OrderByDescending(t => t.CreatedAt)
             .Skip((page - 1) * 10)
-            .Take(30)
+            .Take(10)
             .ToListAsync();
     }
 
