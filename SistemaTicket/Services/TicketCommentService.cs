@@ -86,6 +86,17 @@ public class TicketCommentService : ITicketCommentService
             CreatedAt = ticketComment.CreatedAt
         };
     }
+    public async Task DeleteAsync(int id, string userId, int ticketId, bool isUser)
+    {
+        await GetTicketAsync(ticketId, userId, isUser);
+        var ticketComment = await _ticketCommentRepository.GetByIdAsync(id, ticketId) ?? throw new NotFoundException("Ticket comment not found");
+        if (ticketComment.UserId != userId && isUser)
+        {
+            throw new ForbiddenException("You are not authorized to delete this comment");
+        }
+        _ticketCommentRepository.Delete(ticketComment);
+        await _ticketCommentRepository.SaveAsync();
+    }
 
     private async Task<Ticket> GetTicketAsync(int ticketId, string userId, bool isUser)
     {

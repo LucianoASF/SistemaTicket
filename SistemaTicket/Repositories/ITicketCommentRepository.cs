@@ -8,4 +8,5 @@ public interface ITicketCommentRepository
     Task<List<TicketComment>> GetAllByTicketAsync(int ticketId, int page);
     Task<TicketComment?> GetByIdAsync(int id, int ticketId);
     Task SaveAsync();
+    void Delete(TicketComment ticketComment);
 }

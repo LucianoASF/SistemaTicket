@@ -8,6 +8,8 @@ namespace SistemaTicket.Controllers;
 
 [Route("api/tickets/{ticketId}/ticket-comments")]
 [ApiController]
+[Authorize]
+
 public class TicketCommentController : ControllerBase
 {
     private readonly ITicketCommentService _ticketCommentService;
@@ -17,7 +19,6 @@ public class TicketCommentController : ControllerBase
         _ticketCommentService = ticketCommentService;
     }
 
-    [Authorize]
     [HttpPost]
     public async Task<ActionResult<TicketCommentResponseDto>> CreateAsync(TicketCommentRequestDto ticketCommentRequestDto, int ticketId)
     {
@@ -31,7 +32,6 @@ public class TicketCommentController : ControllerBase
         return CreatedAtAction("GetById", new { id = result.Id, ticketId = ticketId }, result);
     }
 
-    [Authorize]
     [HttpGet]
     public async Task<ActionResult<List<TicketCommentResponseDto>>> GetAllByTicketAsync(int ticketId, [FromQuery] int page)
     {
@@ -45,7 +45,6 @@ public class TicketCommentController : ControllerBase
         return Ok(result);
     }
 
-    [Authorize]
     [HttpGet("{id}")]
     public async Task<ActionResult<TicketCommentResponseDto>> GetByIdAsync(int id, int ticketId)
     {
@@ -58,7 +57,7 @@ public class TicketCommentController : ControllerBase
         var result = await _ticketCommentService.GetByIdAsync(id, ticketId, userId, isUser);
         return Ok(result);
     }
-    [Authorize]
+
     [HttpPut("{id}")]
     public async Task<ActionResult<TicketCommentResponseDto>> UpdateAsync(TicketCommentRequestDto dto, int id, int ticketId)
     {
@@ -70,5 +69,18 @@ public class TicketCommentController : ControllerBase
         var isUser = User.IsInRole("User");
         var result = await _ticketCommentService.UpdateAsync(dto, id, userId, ticketId, isUser);
         return Ok(result);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteAsync(int id, int ticketId)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+        var isUser = User.IsInRole("User");
+        await _ticketCommentService.DeleteAsync(id, userId, ticketId, isUser);
+        return NoContent();
     }
 }

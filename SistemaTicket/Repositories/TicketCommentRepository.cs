@@ -40,4 +40,9 @@ public class TicketCommentRepository : ITicketCommentRepository
     {
         await _context.SaveChangesAsync();
     }
+
+    public void Delete(TicketComment ticketComment)
+    {
+        _context.TicketComments.Remove(ticketComment);
+    }
 }
