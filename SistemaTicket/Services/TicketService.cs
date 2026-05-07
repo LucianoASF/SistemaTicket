@@ -9,10 +9,12 @@ namespace SistemaTicket.Services;
 public class TicketService : ITicketService
 {
     private readonly ITicketRepository _ticketRepository;
+    private readonly ITicketHistoryRepository _ticketHistoryRepository;
 
-    public TicketService(ITicketRepository ticketRepository)
+    public TicketService(ITicketRepository ticketRepository, ITicketHistoryRepository ticketHistoryRepository)
     {
         _ticketRepository = ticketRepository;
+        _ticketHistoryRepository = ticketHistoryRepository;
     }
 
     public async Task<TicketResponseDto> CreateAsync(TicketCreateDto ticketCreateDto, string userId, bool isUser)
@@ -87,9 +89,21 @@ public class TicketService : ITicketService
     public async Task<TicketResponseDto> UpdateAsync(int id, string userId, bool isUser, TicketUpdateDto ticketUpdateDto)
     {
         var ticket = await GetTicketOrThrowAsync(id, userId, isUser);
+
+        if (ticketUpdateDto.Status.HasValue && ticketUpdateDto.Status != ticket.Status)
+        {
+            await _ticketHistoryRepository.CreateAsync(new TicketHistory
+            {
+                TicketId = ticket.Id,
+                OldStatus = ticket.Status,
+                NewStatus = ticketUpdateDto.Status.Value,
+                ChangeAt = DateTime.UtcNow,
+                ChangeById = userId
+            });
+        }
+
         ticket.Title = ticketUpdateDto.Title;
         ticket.Description = ticketUpdateDto.Description;
-
         if (!isUser)
         {
             ticket.Priority = VerifyPriority(ticketUpdateDto.Priority);
