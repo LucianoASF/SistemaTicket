@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { AppNavbar } from './AppNavbar';
 import { AppSidebar } from './AppSidebar';
+import { Outlet } from 'react-router';
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSideBarOpen] = useState(false);
+export function AppLayout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <div className="flex h-screen bg-background">
       {sidebarOpen && (
         <div
-          className="fixed insert-0 z-40 bg-black/50 lg:hidden"
-          onClick={() => setSideBarOpen(false)}
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
         />
       )}
       <div
@@ -20,8 +21,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <AppSidebar />
       </div>
       <div className="flex-1 flex-col overflow-hidden">
-        <AppNavbar onMenuClick={() => setSideBarOpen} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <AppNavbar onMenuClick={() => setSidebarOpen(true)} />
+        <main className="flex-1 overflow-y-auto p-6">
+          <Outlet />
+        </main>
       </div>
     </div>
   );
