@@ -1,4 +1,3 @@
-import { Badge } from '#components/ui/badge';
 import { Button } from '#components/ui/button';
 import {
   Card,
@@ -7,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '#components/ui/card';
+import { getStatusBadge, getPriorityBadge } from '#lib/badges';
 import { tickets } from '#lib/mock';
 import {
   AlertCircle,
@@ -16,52 +16,6 @@ import {
   Ticket,
 } from 'lucide-react';
 import { Link } from 'react-router';
-
-function getStatusBadge(status: string) {
-  const statusConfig = {
-    open: {
-      label: 'Aberto',
-      className: 'bg-amber-100 text-amber-700 border-amber-200',
-    },
-    'in-progress': {
-      label: 'Em Progresso',
-      className: 'bg-blue-100 text-blue-700 border-blue-200',
-    },
-    closed: {
-      label: 'Fechado',
-      className: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    },
-  };
-  const config = statusConfig[status as keyof typeof statusConfig];
-  return (
-    <Badge variant="outline" className={config.className}>
-      {config.label}
-    </Badge>
-  );
-}
-
-function getPriorityBadge(priority: string) {
-  const priorityConfig = {
-    low: {
-      label: 'Baixa',
-      className: 'bg-slate-100 text-slate-700 border-slate-200',
-    },
-    medium: {
-      label: 'Média',
-      className: 'bg-amber-100 text-amber-700 border-amber-200',
-    },
-    high: {
-      label: 'Alta',
-      className: 'bg-red-100 text-red-700 border-red-200',
-    },
-  };
-  const config = priorityConfig[priority as keyof typeof priorityConfig];
-  return (
-    <Badge variant="outline" className={config.className}>
-      {config.label}
-    </Badge>
-  );
-}
 
 export function Dashboard() {
   const dataCards = [
@@ -104,7 +58,7 @@ export function Dashboard() {
           <p className="text-muted-foreground">Visão geral do sistema</p>
         </div>
         <Button asChild>
-          <Link to="/dashboard/tickets">
+          <Link to="/tickets">
             Ver todos os tickets
             <ArrowRight className="ml-2 h-4 w-4" />{' '}
           </Link>
@@ -142,14 +96,14 @@ export function Dashboard() {
             </CardDescription>
           </div>
           <Button variant="outline" size="sm" asChild>
-            <Link to="/dashboard/tickets">Ver todos</Link>
+            <Link to="/tickets">Ver todos</Link>
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
           {recentTickets.map((ticket) => (
             <Link
               key={ticket.id}
-              to={`/dashboard/tickets/${ticket.id}`}
+              to={`/tickets/${ticket.id}`}
               className="flex items-center justify-between border border-border rounded-lg p-4 transition-colors hover:bg-muted/50"
             >
               <div className="flex-1 min-w-0 ">
