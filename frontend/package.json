@@ -40,7 +40,7 @@
   },
   "imports": {
     "#components/*": "./src/components/*.tsx",
-    "#lib/*": "./src/lib/*.ts",
+    "#lib/*": "./src/lib/*",
     "#hooks/*": "./src/hooks/*.ts"
   }
 }

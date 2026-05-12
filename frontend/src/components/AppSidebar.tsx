@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback } from './ui/avatar';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Tickets', href: '/dashboard/tickets', icon: Ticket },
+  { name: 'Tickets', href: '/tickets', icon: Ticket },
   { name: 'Projetos', href: '/dashboard/projects', icon: FolderKanban },
   { name: 'Usuários', href: '/dashboard/users', icon: Users },
 ];
