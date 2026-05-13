@@ -3,6 +3,7 @@ import { Login } from './pages/Login';
 import { AppLayout } from '#components/AppLayout';
 import { Dashboard } from './pages/Dashboard';
 import { Tickets } from './pages/tickets/Tickets';
+import { TicketDetails } from './pages/tickets/TicketDetails';
 
 export function App() {
   return (
@@ -12,6 +13,7 @@ export function App() {
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/tickets" element={<Tickets />} />
+          <Route path="/tickets/:id" element={<TicketDetails />} />
         </Route>
       </Routes>
     </BrowserRouter>
