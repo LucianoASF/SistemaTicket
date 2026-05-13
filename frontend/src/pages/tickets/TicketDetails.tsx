@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs';
 import { Avatar, AvatarFallback } from '#components/ui/avatar';
 import { Separator } from '#components/ui/separator';
 import { Textarea } from '#components/ui/textarea';
+import { ModalTicket } from '#components/ModalTicket';
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -32,6 +33,7 @@ export function TicketDetails() {
   const [ticket, setTicket] = useState(
     inicitialTickets.find((it) => it.id === id),
   );
+  const [isModelOpen, setIsModelOpen] = useState(false);
 
   if (!ticket) {
     return (
@@ -68,7 +70,7 @@ export function TicketDetails() {
             <h1 className="text-2xl font-bold">{ticket.title}</h1>
           </div>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={() => setIsModelOpen(true)}>
           <Edit className="h-4 w-4 mr-2" />
           Editar
         </Button>
@@ -244,6 +246,11 @@ export function TicketDetails() {
           </Card>
         </div>
       </div>
+      <ModalTicket
+        open={isModelOpen}
+        onOpenChange={setIsModelOpen}
+        ticket={ticket}
+      />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { ModalTicket } from '#components/ModalTicket';
 import { Button } from '#components/ui/button';
 import { Input } from '#components/ui/input';
 import {
@@ -30,6 +31,7 @@ export function Tickets() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isModelOpen, setIsModelOpen] = useState(false);
 
   // Filter tickets
   const filteredTickets = tickets.filter((ticket) => {
@@ -60,7 +62,7 @@ export function Tickets() {
             Gerencie todos os tickets do sistema
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setIsModelOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Novo Ticket
         </Button>
@@ -186,6 +188,7 @@ export function Tickets() {
           </div>
         </div>
       </div>
+      <ModalTicket open={isModelOpen} onOpenChange={setIsModelOpen} />
     </div>
   );
 }
