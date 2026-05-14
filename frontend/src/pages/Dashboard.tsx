@@ -1,3 +1,5 @@
+import { PriorityBadge } from '#components/badges/PriorityBadge';
+import { StatusBadge } from '#components/badges/StatusBadge';
 import { Button } from '#components/ui/button';
 import {
   Card,
@@ -6,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from '#components/ui/card';
-import { getStatusBadge, getPriorityBadge } from '#lib/badges';
 import { tickets } from '#lib/mock';
 import {
   AlertCircle,
@@ -111,8 +112,8 @@ export function Dashboard() {
                   <span className="text-sm font-medium text-muted-foreground">
                     Id: {ticket.id}
                   </span>
-                  {getStatusBadge(ticket.status)}
-                  {getPriorityBadge(ticket.priority)}
+                  <StatusBadge status={ticket.status} />
+                  <PriorityBadge priority={ticket.priority} />
                 </div>
                 <p className="truncate">{ticket.title}</p>
                 <p className="text-sm text-muted-foreground truncate">

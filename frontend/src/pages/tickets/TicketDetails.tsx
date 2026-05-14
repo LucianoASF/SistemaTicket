@@ -1,5 +1,4 @@
 import { Button } from '#components/ui/button';
-import { getPriorityBadge, getStatusBadge } from '#lib/badges';
 import {
   ArrowLeft,
   Clock,
@@ -13,10 +12,12 @@ import { tickets as inicitialTickets } from '#lib/mock';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs';
-import { Avatar, AvatarFallback } from '#components/ui/avatar';
 import { Separator } from '#components/ui/separator';
 import { Textarea } from '#components/ui/textarea';
 import { ModalTicket } from '#components/ModalTicket';
+import { CustomAvatar } from '#components/CustomAvatar';
+import { StatusBadge } from '#components/badges/StatusBadge';
+import { PriorityBadge } from '#components/badges/PriorityBadge';
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -64,8 +65,8 @@ export function TicketDetails() {
               <span className="text-sm text-muted-foreground">
                 Id: {ticket.id}
               </span>
-              {getStatusBadge(ticket.status)}
-              {getPriorityBadge(ticket.priority)}
+              <StatusBadge status={ticket.status} />
+              <PriorityBadge priority={ticket.priority} />
             </div>
             <h1 className="text-2xl font-bold">{ticket.title}</h1>
           </div>
@@ -110,14 +111,7 @@ export function TicketDetails() {
                       {ticket.comments.map((c) => (
                         <div key={c.id}>
                           <div className="flex items-center gap-2">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-xs">
-                                {c.author.name
-                                  .split(' ')
-                                  .map((n) => n[0])
-                                  .join('')}
-                              </AvatarFallback>
-                            </Avatar>
+                            <CustomAvatar name={c.author.name} />
                             <span className="font-medium">{c.author.name}</span>
                             <span className="text-muted-foreground text-xs">
                               {formatDate(c.createdAt)}
@@ -178,14 +172,14 @@ export function TicketDetails() {
                   <span className="text-muted-foreground text-sm font-medium">
                     Status
                   </span>
-                  {getStatusBadge(ticket.status)}
+                  <StatusBadge status={ticket.status} />
                 </div>
                 <Separator />
                 <div className="flex flex-col gap-1">
                   <span className="text-muted-foreground text-sm font-medium">
                     Prioridade
                   </span>
-                  {getPriorityBadge(ticket.priority)}
+                  <PriorityBadge priority={ticket.priority} />
                 </div>
                 <Separator />
                 <div className="flex flex-col gap-1">
@@ -193,14 +187,7 @@ export function TicketDetails() {
                     Criado por
                   </span>
                   <div className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
-                      <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-xs">
-                        {ticket.author.name
-                          .split(' ')
-                          .map((n) => n[0])
-                          .join('')}
-                      </AvatarFallback>
-                    </Avatar>
+                    <CustomAvatar name={ticket.author.name} />
                     <span className="text-sm">{ticket.author.name}</span>
                   </div>
                 </div>
@@ -211,14 +198,7 @@ export function TicketDetails() {
                       Atribuido para
                     </span>
                     <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
-                          {ticket.assignee.name
-                            .split(' ')
-                            .map((n) => n[0])
-                            .join('')}
-                        </AvatarFallback>
-                      </Avatar>
+                      <CustomAvatar name={ticket.assignee.name} />
                       <span className="text-sm">{ticket.assignee.name}</span>
                     </div>
                   </div>

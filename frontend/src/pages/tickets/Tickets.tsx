@@ -1,3 +1,5 @@
+import { PriorityBadge } from '#components/badges/PriorityBadge';
+import { StatusBadge } from '#components/badges/StatusBadge';
 import { ModalTicket } from '#components/ModalTicket';
 import { Button } from '#components/ui/button';
 import { Input } from '#components/ui/input';
@@ -16,8 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from '#components/ui/table';
-import { getStatusBadge, getPriorityBadge } from '#lib/badges';
-
 import { tickets as inicitialTickets } from '#lib/mock';
 import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react';
 import { useState } from 'react';
@@ -142,8 +142,13 @@ export function Tickets() {
                       {ticket.title}
                     </div>
                   </TableCell>
-                  <TableCell>{getStatusBadge(ticket.status)}</TableCell>
-                  <TableCell>{getPriorityBadge(ticket.priority)}</TableCell>
+                  <TableCell>
+                    <StatusBadge status={ticket.status} />
+                  </TableCell>
+                  <TableCell>
+                    <PriorityBadge priority={ticket.priority} />
+                  </TableCell>
+
                   <TableCell>
                     {new Date(ticket.createdAt).toLocaleDateString('pt-BR')}
                   </TableCell>

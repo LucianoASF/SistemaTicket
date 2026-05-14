@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 import { Link, NavLink } from 'react-router';
-import { Avatar, AvatarFallback } from './ui/avatar';
+import { CustomAvatar } from './CustomAvatar';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -54,11 +54,7 @@ export function AppSidebar() {
       </nav>
       <div className="border-t border-sidebar-border p-3">
         <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-xs">
-              RA
-            </AvatarFallback>
-          </Avatar>
+          <CustomAvatar name="Rogerio Andrade" />
           <div className="flex-1 min-w-0">
             <p className="truncate text-sm font-medium text-sidebar-foreground">
               Rogerio Andrade

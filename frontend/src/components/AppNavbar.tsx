@@ -1,5 +1,4 @@
 import { Menu } from 'lucide-react';
-import { Avatar, AvatarFallback } from './ui/avatar';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -9,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import { CustomAvatar } from './CustomAvatar';
 
 interface AppNavbarProps {
   onMenuClick?: () => void;
@@ -31,11 +31,7 @@ export function AppNavbar({ onMenuClick }: AppNavbarProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                  RA
-                </AvatarFallback>
-              </Avatar>
+              <CustomAvatar name="Rogerio Andrade" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">

@@ -21,7 +21,7 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
 
-    "paths": {
+     "paths": {
     "#components/*": ["./src/components/*.tsx"],
     "#lib/*": ["./src/lib/*"],
     "#hooks/*": ["./src/hooks/*.ts"]
