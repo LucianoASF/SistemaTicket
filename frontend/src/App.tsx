@@ -4,6 +4,7 @@ import { AppLayout } from '#components/AppLayout';
 import { Dashboard } from './pages/Dashboard';
 import { Tickets } from './pages/tickets/Tickets';
 import { TicketDetails } from './pages/tickets/TicketDetails';
+import { Users } from './pages/users/Users';
 
 export function App() {
   return (
@@ -14,6 +15,7 @@ export function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/tickets/:id" element={<TicketDetails />} />
+          <Route path="/users" element={<Users />} />
         </Route>
       </Routes>
     </BrowserRouter>

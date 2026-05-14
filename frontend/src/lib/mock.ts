@@ -11,7 +11,7 @@ export const users = [
     id: 'user-2',
     name: 'Maria Santos',
     email: 'maria@empresa.com',
-    role: 'agent',
+    role: 'support',
   },
   {
     id: 'user-3',
@@ -23,7 +23,7 @@ export const users = [
     id: 'user-4',
     name: 'Ana Oliveira',
     email: 'ana@empresa.com',
-    role: 'agent',
+    role: 'support',
   },
 ];
 
