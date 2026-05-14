@@ -5,6 +5,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Tickets } from './pages/tickets/Tickets';
 import { TicketDetails } from './pages/tickets/TicketDetails';
 import { Users } from './pages/users/Users';
+import { UserDetails } from './pages/users/UserDetails';
 
 export function App() {
   return (
@@ -16,6 +17,7 @@ export function App() {
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/tickets/:id" element={<TicketDetails />} />
           <Route path="/users" element={<Users />} />
+          <Route path="/users/:id" element={<UserDetails />} />
         </Route>
       </Routes>
     </BrowserRouter>

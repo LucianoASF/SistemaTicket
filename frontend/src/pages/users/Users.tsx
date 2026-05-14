@@ -169,7 +169,7 @@ export function Users() {
                         size="sm"
                         asChild
                       >
-                        <Link to={`/usuarios/${user.id}`}>Ver detalhes</Link>
+                        <Link to={`/users/${user.id}`}>Ver detalhes</Link>
                       </Button>
                     </TableCell>
                   </TableRow>
