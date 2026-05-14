@@ -198,7 +198,7 @@ export function TicketDetails() {
                       Atribuido para
                     </span>
                     <div className="flex items-center gap-2">
-                      <CustomAvatar name={ticket.assignee.name} />
+                      <CustomAvatar name={ticket.assignee.name} secondary />
                       <span className="text-sm">{ticket.assignee.name}</span>
                     </div>
                   </div>
