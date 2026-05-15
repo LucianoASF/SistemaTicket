@@ -19,6 +19,6 @@ public class ApplicationUserCreateDto
 
     [Required]
     [MinLength(1, ErrorMessage = "The field roles must contain at least one role.")]
-    public List<string> Roles { get; set; } = new();
+    public string Role { get; set; } = string.Empty;
 
 }

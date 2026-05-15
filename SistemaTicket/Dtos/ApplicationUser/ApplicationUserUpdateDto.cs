@@ -16,6 +16,6 @@ public class ApplicationUserUpdateDto
     [StringLength(60, MinimumLength = 6)]
     public string? Password { get; set; }
 
-    public List<string>? Roles { get; set; }
+    public string? Role { get; set; }
 
 }
