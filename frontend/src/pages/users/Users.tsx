@@ -22,6 +22,7 @@ import { Link } from 'react-router';
 import { users as inicitialUsers } from '#lib/mock';
 import { Badge } from '#components/ui/badge';
 import { CustomAvatar } from '#components/CustomAvatar';
+import { ModalUser } from '#components/ModalUser';
 
 const roleLabels = {
   admin: {
@@ -39,6 +40,7 @@ const roleLabels = {
 };
 
 export function Users() {
+  const [isModelOpen, setIsModelOpen] = useState(false);
   const [users, setUsers] = useState(inicitialUsers);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -89,7 +91,7 @@ export function Users() {
             Gerencie os usuários do sistema
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setIsModelOpen(true)}>
           <UserPlus className="mr-2 h-4 w-4" />
           Novo Usuário
         </Button>
@@ -209,6 +211,7 @@ export function Users() {
           </div>
         </div>
       </div>
+      <ModalUser open={isModelOpen} onOpenChange={setIsModelOpen} />
     </div>
   );
 }

@@ -24,6 +24,7 @@ import {
 import { StatusBadge } from '#components/badges/StatusBadge';
 import { PriorityBadge } from '#components/badges/PriorityBadge';
 import { Separator } from '#components/ui/separator';
+import { ModalUser } from '#components/ModalUser';
 
 const roleLabels = {
   admin: {
@@ -52,6 +53,7 @@ function formatDate(dateString: string) {
 
 export function UserDetails() {
   const { id } = useParams();
+  const [isModelOpen, setIsModelOpen] = useState(false);
   const [user, setUser] = useState(inicitialUsers.find((iu) => iu.id === id));
   const roleConfig = roleLabels[user.role];
 
@@ -107,7 +109,7 @@ export function UserDetails() {
             </span>
           </div>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={() => setIsModelOpen(true)}>
           <Edit className="h-4 w-4 mr-2" />
           Editar
         </Button>
@@ -353,6 +355,7 @@ export function UserDetails() {
           </Card>
         </div>
       </div>
+      <ModalUser user={user} open={isModelOpen} onOpenChange={setIsModelOpen} />
     </div>
   );
 }
