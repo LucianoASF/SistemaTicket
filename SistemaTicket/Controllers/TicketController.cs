@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaTicket.Dtos.Ticket;
+using SistemaTicket.Enums;
 using SistemaTicket.Services;
 using System.Security.Claims;
 
@@ -26,12 +27,12 @@ public class TicketController : ControllerBase
         {
             return Unauthorized();
         }
-        var isUser = User.IsInRole("User");
+        var isUser = User.IsInRole(nameof(UserRole.User));
         var result = await _ticketService.CreateAsync(dto, userId, isUser);
         return CreatedAtAction("GetById", new { id = result.Id }, result);
     }
 
-    [Authorize(Roles = "Admin, Support")]
+    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Support)}")]
     [HttpGet]
     public async Task<ActionResult<List<TicketResponseDto>>> GetAllAsync([FromQuery] int page)
     {
@@ -47,7 +48,7 @@ public class TicketController : ControllerBase
         {
             return Unauthorized();
         }
-        var isUser = User.IsInRole("User");
+        var isUser = User.IsInRole(nameof(UserRole.User));
         return Ok(await _ticketService.GetByIdAsync(id, userId, isUser));
     }
 
@@ -60,10 +61,10 @@ public class TicketController : ControllerBase
         {
             return Unauthorized();
         }
-        var isUser = User.IsInRole("User");
+        var isUser = User.IsInRole(nameof(UserRole.User));
         return Ok(await _ticketService.UpdateAsync(id, userId, isUser, dto));
     }
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteAsync(int id)
     {

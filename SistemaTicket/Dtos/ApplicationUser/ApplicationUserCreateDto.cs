@@ -19,7 +19,6 @@ public class ApplicationUserCreateDto
     public string Password { get; set; } = string.Empty;
 
     [Required]
-    [EnumDataType(typeof(UserRole), ErrorMessage = "Invalid role.")]
     public UserRole Role { get; set; }
 
 }

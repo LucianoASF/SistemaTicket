@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaTicket.Dtos.TicketHistory;
+using SistemaTicket.Enums;
 using SistemaTicket.Services;
 using System.Security.Claims;
 
@@ -26,7 +27,7 @@ public class TicketHistoryController : ControllerBase
         {
             return Unauthorized();
         }
-        var isUser = User.IsInRole("User");
+        var isUser = User.IsInRole(nameof(UserRole.User));
         var ticketHistories = await _ticketHistoryService.GetAllByTicketIdAsync(ticketId, userId, isUser, page);
         return Ok(ticketHistories);
     }
@@ -39,7 +40,7 @@ public class TicketHistoryController : ControllerBase
         {
             return Unauthorized();
         }
-        var isUser = User.IsInRole("User");
+        var isUser = User.IsInRole(nameof(UserRole.User));
         var ticketHistory = await _ticketHistoryService.GetByIdAsync(ticketId, id, userId, isUser);
         return Ok(ticketHistory);
     }

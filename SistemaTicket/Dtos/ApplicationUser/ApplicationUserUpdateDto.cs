@@ -16,8 +16,6 @@ public class ApplicationUserUpdateDto
 
     [StringLength(60, MinimumLength = 6)]
     public string? Password { get; set; }
-
-    [EnumDataType(typeof(UserRole), ErrorMessage = "Invalid role.")]
     public UserRole? Role { get; set; }
 
 }

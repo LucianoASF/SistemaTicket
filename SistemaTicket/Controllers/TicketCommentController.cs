@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaTicket.Dtos.TicketComment;
+using SistemaTicket.Enums;
 using SistemaTicket.Services;
 using System.Security.Claims;
 
@@ -27,7 +28,7 @@ public class TicketCommentController : ControllerBase
         {
             return Unauthorized();
         }
-        var isUser = User.IsInRole("User");
+        var isUser = User.IsInRole(nameof(UserRole.User));
         var result = await _ticketCommentService.CreateAsync(ticketCommentRequestDto, userId, ticketId, isUser);
         return CreatedAtAction("GetById", new { id = result.Id, ticketId = ticketId }, result);
     }
@@ -40,7 +41,7 @@ public class TicketCommentController : ControllerBase
         {
             return Unauthorized();
         }
-        var isUser = User.IsInRole("User");
+        var isUser = User.IsInRole(nameof(UserRole.User));
         var result = await _ticketCommentService.GetAllByTicketAsync(ticketId, userId, isUser, page);
         return Ok(result);
     }
@@ -53,7 +54,7 @@ public class TicketCommentController : ControllerBase
         {
             return Unauthorized();
         }
-        var isUser = User.IsInRole("User");
+        var isUser = User.IsInRole(nameof(UserRole.User));
         var result = await _ticketCommentService.GetByIdAsync(id, ticketId, userId, isUser);
         return Ok(result);
     }
@@ -66,7 +67,7 @@ public class TicketCommentController : ControllerBase
         {
             return Unauthorized();
         }
-        var isUser = User.IsInRole("User");
+        var isUser = User.IsInRole(nameof(UserRole.User));
         var result = await _ticketCommentService.UpdateAsync(dto, id, userId, ticketId, isUser);
         return Ok(result);
     }
@@ -79,7 +80,7 @@ public class TicketCommentController : ControllerBase
         {
             return Unauthorized();
         }
-        var isUser = User.IsInRole("User");
+        var isUser = User.IsInRole(nameof(UserRole.User));
         await _ticketCommentService.DeleteAsync(id, userId, ticketId, isUser);
         return NoContent();
     }

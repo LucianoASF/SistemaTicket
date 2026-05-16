@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaTicket.Dtos.ApplicationUser;
+using SistemaTicket.Enums;
 using SistemaTicket.Services;
 using System.Security.Claims;
 
@@ -17,7 +18,7 @@ public class ApplicationUserController : ControllerBase
     {
         _applicationUserService = applicationUserService;
     }
-    [Authorize(Roles = ("Admin"))]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpPost]
     public async Task<ActionResult<ApplicationUserResponseDto>> CreateAsync(ApplicationUserCreateDto dto)
     {
@@ -25,7 +26,7 @@ public class ApplicationUserController : ControllerBase
         return CreatedAtAction("GetById", new { id = result.Id }, result);
     }
 
-    [Authorize(Roles = ("Admin"))]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpGet]
     public async Task<ActionResult<List<ApplicationUserResponseDto>>> GetAllAsync([FromQuery] int page)
     {
@@ -53,7 +54,7 @@ public class ApplicationUserController : ControllerBase
         return Ok(await _applicationUserService.UpdateAsync(id, dto, isAdmin));
     }
 
-    [Authorize(Roles = ("Admin"))]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteAsync(string id)
     {
