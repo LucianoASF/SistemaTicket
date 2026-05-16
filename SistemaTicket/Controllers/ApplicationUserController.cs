@@ -37,6 +37,12 @@ public class ApplicationUserController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ApplicationUserResponseDto>> GetByIdAsync(string id)
     {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var isUser = User.IsInRole(nameof(UserRole.User));
+        if (isUser && userId != id)
+        {
+            return Forbid();
+        }
         return Ok(await _applicationUserService.GetByIdAsync(id));
     }
 
@@ -45,7 +51,7 @@ public class ApplicationUserController : ControllerBase
     public async Task<ActionResult<ApplicationUserResponseDto>> UpdateAsync(string id, ApplicationUserUpdateDto dto)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var isAdmin = User.IsInRole("Admin");
+        var isAdmin = User.IsInRole(nameof(UserRole.Admin));
 
         if (!isAdmin && userId != id)
         {
@@ -58,6 +64,7 @@ public class ApplicationUserController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteAsync(string id)
     {
+
         await _applicationUserService.DeleteAsync(id);
         return NoContent();
     }
