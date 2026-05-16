@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SistemaTicket.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace SistemaTicket.Dtos.ApplicationUser;
 
@@ -18,7 +19,7 @@ public class ApplicationUserCreateDto
     public string Password { get; set; } = string.Empty;
 
     [Required]
-    [MinLength(1, ErrorMessage = "The field roles must contain at least one role.")]
-    public string Role { get; set; } = string.Empty;
+    [EnumDataType(typeof(UserRole), ErrorMessage = "Invalid role.")]
+    public UserRole Role { get; set; }
 
 }

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SistemaTicket.Data;
 using SistemaTicket.Dtos.ApplicationUser;
 using SistemaTicket.Entities;
+using SistemaTicket.Enums;
 using SistemaTicket.Exceptions;
 using SistemaTicket.Extentions;
 using System.Data;
@@ -34,7 +35,7 @@ public class ApplicationUserService : IApplicationUserService
         {
 
 
-            if (!await _roleManager.RoleExistsAsync(applicationUserCreateDto.Role))
+            if (!await _roleManager.RoleExistsAsync(applicationUserCreateDto.Role.ToString()))
             {
                 throw new BadRequestException(new Dictionary<string, string[]> { { "role", new[] { $"The role '{applicationUserCreateDto.Role}' does not exist." } } });
             }
@@ -52,7 +53,7 @@ public class ApplicationUserService : IApplicationUserService
 
                 throw new BadRequestException(errors);
             }
-            var roleResult = await _userManager.AddToRoleAsync(applicationUser, applicationUserCreateDto.Role);
+            var roleResult = await _userManager.AddToRoleAsync(applicationUser, applicationUserCreateDto.Role.ToString());
             if (!roleResult.Succeeded)
             {
                 var errors = roleResult.Errors
@@ -107,7 +108,7 @@ public class ApplicationUserService : IApplicationUserService
                 Name = user.Name,
                 Email = user.Email,
                 CreatedAt = user.CreatedAt,
-                Role = roles.FirstOrDefault() ?? string.Empty
+                Role = Enum.Parse<UserRole>(roles.First(), true)
             });
         }
 
@@ -131,7 +132,7 @@ public class ApplicationUserService : IApplicationUserService
             Name = user.Name,
             Email = user.Email,
             CreatedAt = user.CreatedAt,
-            Role = roles.FirstOrDefault() ?? string.Empty
+            Role = Enum.Parse<UserRole>(roles.First(), true)
         };
     }
     public async Task<ApplicationUserResponseDto> UpdateAsync(string id, ApplicationUserUpdateDto applicationUserUpdateDto, bool isAdmin)
@@ -174,17 +175,17 @@ public class ApplicationUserService : IApplicationUserService
 
             if (applicationUserUpdateDto.Role == null)
             {
-                applicationUserUpdateDto.Role = currentRoles.FirstOrDefault() ?? string.Empty;
+                applicationUserUpdateDto.Role = Enum.Parse<UserRole>(currentRoles.First(), true);
             }
-            applicationUserUpdateDto.Role = applicationUserUpdateDto.Role.ToLower();
 
 
-            if (!await _roleManager.RoleExistsAsync(applicationUserUpdateDto.Role))
+
+            if (!await _roleManager.RoleExistsAsync(applicationUserUpdateDto.Role.ToString()!))
             {
                 throw new BadRequestException(new Dictionary<string, string[]> { { "roles", new[] { $"The role '{applicationUserUpdateDto.Role}' does not exist." } } });
             }
 
-            if (applicationUserUpdateDto.Role != currentRoles.FirstOrDefault())
+            if (applicationUserUpdateDto.Role.ToString() != currentRoles.First())
             {
                 var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
                 if (!removeResult.Succeeded)
@@ -197,7 +198,7 @@ public class ApplicationUserService : IApplicationUserService
                         );
                     throw new BadRequestException(errors);
                 }
-                var addResult = await _userManager.AddToRoleAsync(user, applicationUserUpdateDto.Role);
+                var addResult = await _userManager.AddToRoleAsync(user, applicationUserUpdateDto.Role.ToString()!);
                 if (!addResult.Succeeded)
                 {
                     var errors = addResult.Errors
@@ -212,13 +213,16 @@ public class ApplicationUserService : IApplicationUserService
 
             await transaction.CommitAsync();
 
+
+
+
             return new ApplicationUserResponseDto
             {
                 Id = user.Id,
                 Name = user.Name,
                 Email = user.Email,
                 CreatedAt = user.CreatedAt,
-                Role = applicationUserUpdateDto.Role
+                Role = applicationUserUpdateDto.Role!.Value
             };
         }
         catch (Exception)

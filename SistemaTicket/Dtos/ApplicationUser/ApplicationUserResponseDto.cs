@@ -1,4 +1,6 @@
-﻿namespace SistemaTicket.Dtos.ApplicationUser;
+﻿using SistemaTicket.Enums;
+
+namespace SistemaTicket.Dtos.ApplicationUser;
 
 public class ApplicationUserResponseDto
 {
@@ -6,5 +8,5 @@ public class ApplicationUserResponseDto
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
-    public string Role { get; set; } = string.Empty;
+    public UserRole Role { get; set; }
 }

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SistemaTicket.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace SistemaTicket.Dtos.ApplicationUser;
 
@@ -16,6 +17,7 @@ public class ApplicationUserUpdateDto
     [StringLength(60, MinimumLength = 6)]
     public string? Password { get; set; }
 
-    public string? Role { get; set; }
+    [EnumDataType(typeof(UserRole), ErrorMessage = "Invalid role.")]
+    public UserRole? Role { get; set; }
 
 }
