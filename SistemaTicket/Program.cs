@@ -28,10 +28,26 @@ builder.Services.AddControllers()
         options.InvalidModelStateResponseFactory = context =>
         {
             var errors = context.ModelState
-                .Where(e => e.Value!.Errors.Count > 0)
+                .Where(e =>
+                    e.Value!.Errors.Count > 0 &&
+                    e.Key.ToLowerInvariant() != "dto"
+                )
                 .ToDictionary(
-                    e => e.Key.ToLowerInvariant(),
-                    e => e.Value!.Errors.Select(x => x.ErrorMessage).ToList()
+                    e => e.Key.Replace("$.", "").ToLowerInvariant(),
+                    e =>
+                    {
+                        var field = e.Key.Replace("$.", "");
+
+                        return e.Value!.Errors.Select(error =>
+                        {
+                            if (error.ErrorMessage.Contains("could not be converted to"))
+                            {
+                                return $"The field {field} has an invalid value.";
+                            }
+
+                            return error.ErrorMessage;
+                        }).ToList();
+                    }
                 );
 
             var response = new
@@ -43,6 +59,7 @@ builder.Services.AddControllers()
 
             return new BadRequestObjectResult(response);
         };
+
     });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
