@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SistemaTicket.Dtos.Login;
 using SistemaTicket.Services;
 
@@ -35,5 +36,12 @@ public class AuthController : ControllerBase
         Response.Cookies.Delete("auth_token");
 
         return NoContent();
+    }
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<ActionResult<CurrentUserResponseDto>> MeAsync()
+    {
+        var user = await _authService.MeAsync(User);
+        return Ok(user);
     }
 }

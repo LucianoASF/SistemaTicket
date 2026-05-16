@@ -2,6 +2,7 @@
 using Microsoft.IdentityModel.Tokens;
 using SistemaTicket.Dtos.Login;
 using SistemaTicket.Entities;
+using SistemaTicket.Enums;
 using SistemaTicket.Exceptions;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -76,5 +77,16 @@ public class AuthService : IAuthService
         );
 
         return new LoginResponseDto { Token = new JwtSecurityTokenHandler().WriteToken(token), Expires = expires };
+    }
+    public async Task<CurrentUserResponseDto> MeAsync(ClaimsPrincipal userClaims)
+    {
+        var user = await _userManager.GetUserAsync(userClaims);
+        return new CurrentUserResponseDto
+        {
+            Id = user!.Id,
+            Name = user.Name,
+            Email = user.Email ?? string.Empty,
+            Role = Enum.Parse<UserRole>((await _userManager.GetRolesAsync(user))[0])
+        };
     }
 }
