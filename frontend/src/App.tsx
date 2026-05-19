@@ -9,6 +9,7 @@ import { UserDetails } from './pages/users/UserDetails';
 import { AuthProvider } from './contexts/AuthProvider';
 import { PrivateRoute } from './routes/PrivateRoute';
 import { PublicRoute } from './routes/PublicRoute';
+import { NotFound } from './pages/NotFound';
 
 export function App() {
   return (
@@ -28,6 +29,7 @@ export function App() {
               <Route path="/users/:id" element={<UserDetails />} />
             </Route>
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
