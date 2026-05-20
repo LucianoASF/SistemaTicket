@@ -26,8 +26,9 @@ export function CustomAvatar({
           large ? 'text-xl' : 'text=xs',
         )}
       >
-        {firstName[0]}
-        {lastName[0]}
+        {parts.length === 1
+          ? `${firstName[0]}${firstName[1]}`
+          : `${firstName[0]}${lastName[0]}`}
       </AvatarFallback>
     </Avatar>
   );
