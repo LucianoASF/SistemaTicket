@@ -10,4 +10,5 @@ export interface UserLogin {
   id: string;
   role: UserRole;
   name: string;
+  email: string;
 }
