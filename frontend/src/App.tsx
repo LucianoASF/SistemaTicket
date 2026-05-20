@@ -10,6 +10,7 @@ import { AuthProvider } from './contexts/AuthProvider';
 import { PrivateRoute } from './routes/PrivateRoute';
 import { PublicRoute } from './routes/PublicRoute';
 import { NotFound } from './pages/NotFound';
+import { Toaster } from '#components/ui/sonner';
 
 export function App() {
   return (
@@ -31,6 +32,7 @@ export function App() {
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <Toaster />
       </BrowserRouter>
     </AuthProvider>
   );
