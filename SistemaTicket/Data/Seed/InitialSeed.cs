@@ -36,9 +36,10 @@ public static class SeedData
             admin = new ApplicationUser
             {
                 UserName = adminEmail,
+                Name = "Admin",
                 Email = adminEmail,
                 EmailConfirmed = true,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTimeOffset.UtcNow,
             };
 
             var result = await userManager.CreateAsync(admin, "Admin@123");

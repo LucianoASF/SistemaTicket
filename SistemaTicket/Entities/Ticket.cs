@@ -15,7 +15,7 @@ public class Ticket
     public string Description { get; set; } = string.Empty;
     public TicketStatus Status { get; set; }
     public TicketPriority Priority { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
     public string CreatedById { get; set; } = string.Empty;
     public ApplicationUser? CreatedBy { get; set; }
     public List<TicketComment>? TicketComments { get; set; }

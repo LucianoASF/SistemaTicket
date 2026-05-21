@@ -21,7 +21,7 @@ public class TicketCommentService : ITicketCommentService
         TicketComment ticketComment = new()
         {
             Message = ticketCommentRequestDto.Message,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTimeOffset.UtcNow,
             UserId = userId,
             TicketId = ticketId
         };

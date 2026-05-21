@@ -30,10 +30,11 @@ public class TicketService : ITicketService
             Description = ticketCreateDto.Description,
             Status = TicketStatus.Open,
             Priority = VerifyPriority(ticketCreateDto.Priority),
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTimeOffset.UtcNow,
             CreatedById = userId
         };
-
+        Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA " + newTicket.CreatedAt.ToString("o"));
         var response = await _ticketRepository.CreateAsync(newTicket);
         return new TicketResponseDto
         {
@@ -97,7 +98,7 @@ public class TicketService : ITicketService
                 TicketId = ticket.Id,
                 OldStatus = ticket.Status,
                 NewStatus = ticketUpdateDto.Status.Value,
-                ChangeAt = DateTime.UtcNow,
+                ChangeAt = DateTimeOffset.UtcNow,
                 ChangeById = userId
             });
         }

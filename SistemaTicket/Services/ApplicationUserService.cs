@@ -28,7 +28,7 @@ public class ApplicationUserService : IApplicationUserService
             Name = applicationUserCreateDto.Name,
             Email = applicationUserCreateDto.Email,
             UserName = applicationUserCreateDto.Email,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try

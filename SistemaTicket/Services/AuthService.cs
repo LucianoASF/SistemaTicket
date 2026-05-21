@@ -64,12 +64,12 @@ public class AuthService : IAuthService
         {
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
-        DateTime expires = DateTime.UtcNow.AddMinutes(int.Parse(ExpireMinutesString));
+        DateTimeOffset expires = DateTimeOffset.UtcNow.AddMinutes(int.Parse(ExpireMinutesString));
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],
             audience: _config["Jwt:Audience"],
             claims: claims,
-            expires: expires,
+            expires: expires.UtcDateTime,
             signingCredentials: new SigningCredentials(
                 new SymmetricSecurityKey(key),
                 SecurityAlgorithms.HmacSha256

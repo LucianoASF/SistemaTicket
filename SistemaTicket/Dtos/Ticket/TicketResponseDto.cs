@@ -13,7 +13,7 @@ public class TicketResponseDto
 
     public TicketPriority Priority { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 
     public string CreatedById { get; set; } = string.Empty;
 }
