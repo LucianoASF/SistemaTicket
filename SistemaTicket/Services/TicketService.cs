@@ -71,7 +71,10 @@ public class TicketService : ITicketService
         return new PagedTicketsResponseDto
         {
             Tickets = tickets,
-            Total = response.Total
+            Total = response.Total,
+            Open = response.Open,
+            InProgress = response.InProgress,
+            Closed = response.Closed
         };
     }
 

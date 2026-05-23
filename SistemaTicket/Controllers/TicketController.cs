@@ -37,7 +37,6 @@ public class TicketController : ControllerBase
     public async Task<ActionResult<List<TicketResponseDto>>> GetAllAsync([FromQuery] int page,
         string? searchQuery, TicketStatus? status, TicketPriority? priority, bool? withAuthor)
     {
-        Console.WriteLine(withAuthor + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         return Ok(await _ticketService.GetAllAsync(page, searchQuery, status, priority, withAuthor));
     }
 
