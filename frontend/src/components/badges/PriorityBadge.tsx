@@ -1,21 +1,20 @@
 import { Badge } from '#components/ui/badge';
-
-type Priority = 'low' | 'medium' | 'high';
+import { TICKET_PRIORITY, type TicketPriority } from '../../types/ticket';
 
 interface PriorityBadgeProps {
-  priority: Priority;
+  priority: TicketPriority;
 }
 
 const priorityConfig = {
-  low: {
+  [TICKET_PRIORITY.LOW]: {
     label: 'Baixa',
     className: 'bg-slate-100 text-slate-700 border-slate-200',
   },
-  medium: {
+  [TICKET_PRIORITY.MEDIUM]: {
     label: 'Média',
     className: 'bg-amber-100 text-amber-700 border-amber-200',
   },
-  high: {
+  [TICKET_PRIORITY.HIGH]: {
     label: 'Alta',
     className: 'bg-red-100 text-red-700 border-red-200',
   },

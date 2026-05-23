@@ -18,40 +18,95 @@ import {
   TableHeader,
   TableRow,
 } from '#components/ui/table';
-import { tickets as inicitialTickets } from '#lib/mock';
+import { api } from '#lib/axios.ts';
 import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react';
-import { useState } from 'react';
-import { Link } from 'react-router';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router';
+import {
+  TICKET_PRIORITY,
+  TICKET_STATUS,
+  type TicketPriority,
+  type Ticket,
+  type TicketStatus,
+} from '../../types/ticket';
+import { Spinner } from '#components/ui/spinner';
 
 const ITEMS_PER_PAGE = 5;
 
 export function Tickets() {
-  const [tickets, setTickets] = useState(inicitialTickets);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [total, setTotal] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const currentPage = Number(searchParams.get('page') || 1);
+  const searchQuery = searchParams.get('querySearch') || '';
+  const statusFilter = searchParams.get('status') || 'all';
+  const priorityFilter = searchParams.get('priority') || 'all';
+
+  const [inputValue, setInputValue] = useState(searchQuery);
+
+  const [loading, setLoading] = useState(true);
   const [isModelOpen, setIsModelOpen] = useState(false);
 
-  // Filter tickets
-  const filteredTickets = tickets.filter((ticket) => {
-    const matchesStatus =
-      statusFilter === 'all' || ticket.status === statusFilter;
-    const matchesPriority =
-      priorityFilter === 'all' || ticket.priority === priorityFilter;
-    const matchesSearch =
-      searchQuery === '' ||
-      ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.id.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStatus && matchesPriority && matchesSearch;
-  });
+  useEffect(() => {
+    const fetchTickets = async () => {
+      const request = await api.get<{ tickets: Ticket[]; total: number }>(
+        '/tickets',
+        {
+          params: {
+            page: currentPage,
+            searchQuery: searchQuery || undefined,
+            status: statusFilter === 'all' ? undefined : statusFilter,
+            priority: priorityFilter === 'all' ? undefined : priorityFilter,
+          },
+        },
+      );
+      setTickets(request.data.tickets);
+      setTotal(request.data.total);
+      setLoading(false);
+    };
+    fetchTickets();
+  }, [currentPage, statusFilter, priorityFilter, searchQuery]);
 
-  // Pagination
-  const totalPages = Math.ceil(filteredTickets.length / ITEMS_PER_PAGE);
-  const paginatedTickets = filteredTickets.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
+  const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+
+  const updateParams = useCallback(
+    (params: Record<string, string>) => {
+      setLoading(true);
+      setSearchParams((sp) => {
+        const newParams = new URLSearchParams(sp);
+
+        Object.entries(params).forEach(([key, value]) => {
+          if (!value.trim() || value === 'all') {
+            newParams.delete(key);
+          } else {
+            newParams.set(key, value);
+          }
+        });
+
+        return newParams;
+      });
+    },
+    [setSearchParams],
   );
+
+  useEffect(() => {
+    if (inputValue === searchQuery) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    const timeout = setTimeout(() => {
+      updateParams({
+        page: '1',
+        querySearch: inputValue,
+      });
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [setSearchParams, inputValue, searchQuery, updateParams]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setInputValue(searchQuery);
+  }, [searchQuery]);
 
   return (
     <div className="space-y-6">
@@ -73,16 +128,15 @@ export function Tickets() {
           <Input
             className="pl-9"
             placeholder="Buscar por título ou ID..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
           />
         </div>
         <div className="flex gap-3 min-w-0">
           <Select
             value={statusFilter}
-            onValueChange={(v) => {
-              setStatusFilter(v);
-              setCurrentPage(1);
+            onValueChange={(v: TicketStatus | 'all') => {
+              updateParams({ status: v, page: '1' });
             }}
           >
             <SelectTrigger className="flex-1 truncate md:min-w-50">
@@ -90,26 +144,27 @@ export function Tickets() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os status</SelectItem>
-              <SelectItem value="open">Aberto</SelectItem>
-              <SelectItem value="in-progress">Em Progresso</SelectItem>
-              <SelectItem value="closed">Fechado</SelectItem>
+              <SelectItem value={TICKET_STATUS.OPEN}>Aberto</SelectItem>
+              <SelectItem value={TICKET_STATUS.INPROGRESS}>
+                Em Progresso
+              </SelectItem>
+              <SelectItem value={TICKET_STATUS.CLOSED}>Fechado</SelectItem>
             </SelectContent>
           </Select>
           <Select
             value={priorityFilter}
-            onValueChange={(v) => {
-              setPriorityFilter(v);
-              setCurrentPage(1);
-            }}
+            onValueChange={(v: TicketPriority | 'all') =>
+              updateParams({ priority: v, page: '1' })
+            }
           >
             <SelectTrigger className="flex-1 truncate md:min-w-50">
               <SelectValue placeholder="Prioridade" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as prioridades</SelectItem>
-              <SelectItem value="low">Baixa</SelectItem>
-              <SelectItem value="medium">Média</SelectItem>
-              <SelectItem value="high">Alta</SelectItem>
+              <SelectItem value={TICKET_PRIORITY.LOW}>Baixa</SelectItem>
+              <SelectItem value={TICKET_PRIORITY.MEDIUM}>Média</SelectItem>
+              <SelectItem value={TICKET_PRIORITY.HIGH}>Alta</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -127,14 +182,23 @@ export function Tickets() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedTickets.length === 0 ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24">
+                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                    <Spinner className="size-4" />
+                    <p>Carregando...</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : tickets.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center">
                   Nenhum ticket encontrado.
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedTickets.map((ticket) => (
+              tickets.map((ticket) => (
                 <TableRow key={ticket.id}>
                   <TableCell>{ticket.id}</TableCell>
                   <TableCell>
@@ -150,7 +214,7 @@ export function Tickets() {
                   </TableCell>
 
                   <TableCell>
-                    {new Date(ticket.createdAt).toLocaleDateString('pt-BR')}
+                    {new Date(ticket.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
                     <Button className="px-0" variant="ghost" size="sm" asChild>
@@ -164,29 +228,32 @@ export function Tickets() {
         </Table>
         <div className="flex justify-between items-center border-t border-border px-4 py-3 text-sm text-muted-foreground">
           <p>
-            {' '}
-            Mostrando {(currentPage - 1) * ITEMS_PER_PAGE + 1} a{' '}
-            {Math.min(currentPage * ITEMS_PER_PAGE, filteredTickets.length)} de{' '}
-            {filteredTickets.length} tickets
+            Mostrando {total === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1}{' '}
+            a {Math.min(currentPage * ITEMS_PER_PAGE, total)} de {total} tickets
           </p>
           <div className="flex gap-2 items-center justify-center">
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
+              onClick={() =>
+                updateParams({ page: Math.max(1, currentPage - 1).toString() })
+              }
+              disabled={currentPage <= 1}
             >
-              {' '}
               <ChevronLeft className="h4 w-4 text-foreground" />
             </Button>
             <span>
-              Página {currentPage} de {totalPages}
+              Página {currentPage} de {totalPages === 0 ? 1 : totalPages}
             </span>
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
+              onClick={() =>
+                updateParams({
+                  page: Math.min(totalPages, currentPage + 1).toString(),
+                })
+              }
+              disabled={currentPage >= totalPages || totalPages === 0}
             >
               <ChevronRight className="h4 w-4 text-foreground" />
             </Button>
