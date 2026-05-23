@@ -16,4 +16,6 @@ public class TicketResponseDto
     public DateTimeOffset CreatedAt { get; set; }
 
     public string CreatedById { get; set; } = string.Empty;
+
+    public string? CreatedByName { get; set; }
 }

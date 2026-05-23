@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaTicket.Data;
+using SistemaTicket.Dtos.Ticket;
 using SistemaTicket.Entities;
 using SistemaTicket.Enums;
 namespace SistemaTicket.Repositories;
@@ -20,17 +21,47 @@ public class TicketRepository : ITicketRepository
         return ticket;
     }
 
-    public async Task<(List<Ticket> Tickets, int Total)> GetAllAsync(int page, string? searchQuery, TicketStatus? status, TicketPriority? priority)
+    public async Task<(List<TicketResponseDto> Tickets, int Total)> GetAllAsync(int page, string? searchQuery,
+        TicketStatus? status, TicketPriority? priority, bool? withAuthor)
     {
         var query = _context.Tickets.AsNoTracking()
             .Where(t => (string.IsNullOrEmpty(searchQuery) || (t.Title.Contains(searchQuery) || t.Id.ToString().Contains(searchQuery)))
             && (!status.HasValue || t.Status == status.Value)
-            && (!priority.HasValue || t.Priority == priority.Value)
-            );
+            && (!priority.HasValue || t.Priority == priority.Value));
+
+        IQueryable<TicketResponseDto> dtoQuery;
+
+        if (withAuthor == true)
+        {
+            dtoQuery = query.Select(t => new TicketResponseDto
+            {
+                Id = t.Id,
+                Title = t.Title,
+                Description = t.Description,
+                Status = t.Status,
+                Priority = t.Priority,
+                CreatedAt = t.CreatedAt,
+                CreatedById = t.CreatedById,
+                CreatedByName = t.CreatedBy == null ? null : t.CreatedBy.Name
+            });
+        }
+        else
+        {
+            dtoQuery = query.Select(t => new TicketResponseDto
+            {
+                Id = t.Id,
+                Title = t.Title,
+                Description = t.Description,
+                Status = t.Status,
+                Priority = t.Priority,
+                CreatedAt = t.CreatedAt
+            });
+        }
+
 
         var total = await query.CountAsync();
 
-        var tickets = await query
+        var tickets = await dtoQuery
             .OrderByDescending(t => t.CreatedAt)
             .Skip((page - 1) * 5)
             .Take(5)

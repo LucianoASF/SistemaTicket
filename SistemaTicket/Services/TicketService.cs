@@ -46,10 +46,11 @@ public class TicketService : ITicketService
         };
     }
 
-    public async Task<PagedTicketsResponseDto> GetAllAsync(int page, string? searchQuery, TicketStatus? status, TicketPriority? priority)
+    public async Task<PagedTicketsResponseDto> GetAllAsync(int page, string? searchQuery,
+        TicketStatus? status, TicketPriority? priority, bool? withAuthor)
     {
         page = page < 1 ? 1 : page;
-        var response = await _ticketRepository.GetAllAsync(page, searchQuery, status, priority);
+        var response = await _ticketRepository.GetAllAsync(page, searchQuery, status, priority, withAuthor);
         List<TicketResponseDto> tickets = new();
 
         foreach (var ticket in response.Tickets)
@@ -62,7 +63,8 @@ public class TicketService : ITicketService
                 Status = ticket.Status,
                 Priority = ticket.Priority,
                 CreatedAt = ticket.CreatedAt,
-                CreatedById = ticket.CreatedById
+                CreatedById = ticket.CreatedById,
+                CreatedByName = withAuthor == true ? ticket.CreatedByName : null
             });
         }
 
