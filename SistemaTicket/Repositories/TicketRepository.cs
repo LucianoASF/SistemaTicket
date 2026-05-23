@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaTicket.Data;
 using SistemaTicket.Entities;
+using SistemaTicket.Enums;
 namespace SistemaTicket.Repositories;
 
 public class TicketRepository : ITicketRepository
@@ -19,14 +20,23 @@ public class TicketRepository : ITicketRepository
         return ticket;
     }
 
-    public async Task<List<Ticket>> GetAllAsync(int page)
+    public async Task<(List<Ticket> Tickets, int Total)> GetAllAsync(int page, string? searchQuery, TicketStatus? status, TicketPriority? priority)
     {
-        return await _context.Tickets
-            .AsNoTracking()
+        var query = _context.Tickets.AsNoTracking()
+            .Where(t => (string.IsNullOrEmpty(searchQuery) || (t.Title.Contains(searchQuery) || t.Id.ToString().Contains(searchQuery)))
+            && (!status.HasValue || t.Status == status.Value)
+            && (!priority.HasValue || t.Priority == priority.Value)
+            );
+
+        var total = await query.CountAsync();
+
+        var tickets = await query
             .OrderByDescending(t => t.CreatedAt)
-            .Skip((page - 1) * 10)
-            .Take(10)
+            .Skip((page - 1) * 5)
+            .Take(5)
             .ToListAsync();
+
+        return (tickets, total);
     }
 
     public async Task<Ticket?> GetByIdAsync(int id)

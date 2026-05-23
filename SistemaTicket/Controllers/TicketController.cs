@@ -34,9 +34,9 @@ public class TicketController : ControllerBase
 
     [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Support)}")]
     [HttpGet]
-    public async Task<ActionResult<List<TicketResponseDto>>> GetAllAsync([FromQuery] int page)
+    public async Task<ActionResult<List<TicketResponseDto>>> GetAllAsync([FromQuery] int page, string? searchQuery, TicketStatus? status, TicketPriority? priority)
     {
-        return Ok(await _ticketService.GetAllAsync(page));
+        return Ok(await _ticketService.GetAllAsync(page, searchQuery, status, priority));
     }
 
     [Authorize]

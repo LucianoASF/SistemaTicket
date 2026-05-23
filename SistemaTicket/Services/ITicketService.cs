@@ -1,11 +1,12 @@
 ﻿using SistemaTicket.Dtos.Ticket;
+using SistemaTicket.Enums;
 
 namespace SistemaTicket.Services;
 
 public interface ITicketService
 {
     Task<TicketResponseDto> CreateAsync(TicketCreateDto ticketCreateDto, string userId, bool isUser);
-    Task<List<TicketResponseDto>> GetAllAsync(int page);
+    Task<PagedTicketsResponseDto> GetAllAsync(int page, string? searchQuery, TicketStatus? status, TicketPriority? priority);
     Task<TicketResponseDto> GetByIdAsync(int id, string userId, bool isUser);
     Task<TicketResponseDto> UpdateAsync(int id, string userId, bool isUser, TicketUpdateDto ticketUpdateDto);
     Task DeleteAsync(int id, string userId, bool isUser);

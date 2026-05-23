@@ -33,8 +33,6 @@ public class TicketService : ITicketService
             CreatedAt = DateTimeOffset.UtcNow,
             CreatedById = userId
         };
-        Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +
-            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA " + newTicket.CreatedAt.ToString("o"));
         var response = await _ticketRepository.CreateAsync(newTicket);
         return new TicketResponseDto
         {
@@ -48,15 +46,15 @@ public class TicketService : ITicketService
         };
     }
 
-    public async Task<List<TicketResponseDto>> GetAllAsync(int page)
+    public async Task<PagedTicketsResponseDto> GetAllAsync(int page, string? searchQuery, TicketStatus? status, TicketPriority? priority)
     {
         page = page < 1 ? 1 : page;
-        var tickets = await _ticketRepository.GetAllAsync(page);
-        List<TicketResponseDto> response = new();
+        var response = await _ticketRepository.GetAllAsync(page, searchQuery, status, priority);
+        List<TicketResponseDto> tickets = new();
 
-        foreach (var ticket in tickets)
+        foreach (var ticket in response.Tickets)
         {
-            response.Add(new TicketResponseDto
+            tickets.Add(new TicketResponseDto
             {
                 Id = ticket.Id,
                 Title = ticket.Title,
@@ -68,7 +66,11 @@ public class TicketService : ITicketService
             });
         }
 
-        return response;
+        return new PagedTicketsResponseDto
+        {
+            Tickets = tickets,
+            Total = response.Total
+        };
     }
 
     public async Task<TicketResponseDto> GetByIdAsync(int id, string userId, bool isUser)
