@@ -17,18 +17,24 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import type { Ticket } from '../types/ticket';
+import type { TicketsWithStatusStats } from '../types/ticket';
 import { api } from '#lib/axios.ts';
 
 export function Dashboard() {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [data, setData] = useState<TicketsWithStatusStats>({
+    tickets: [],
+    total: 0,
+    open: 0,
+    inProgress: 0,
+    closed: 0,
+  });
 
   useEffect(() => {
     const fetchTickets = async () => {
-      const response = await api.get<{ tickets: Ticket[]; total: number }>(
+      const response = await api.get<TicketsWithStatusStats>(
         '/tickets?withAuthor=true',
       );
-      setTickets(response.data.tickets);
+      setData(response.data);
     };
     fetchTickets();
   }, []);
@@ -36,28 +42,28 @@ export function Dashboard() {
   const dataCards = [
     {
       title: 'Total de Tickets',
-      value: 8, // vai vir da api
+      value: data.total,
       icon: TicketIcon,
       description: 'Todos os tickets',
       color: 'text-muted-foreground',
     },
     {
       title: 'Abertos',
-      value: 4, // vai vir da api
+      value: data.open,
       icon: AlertCircle,
       description: 'Todos os tickets',
       color: 'text-amber-600',
     },
     {
       title: 'Em Progresso',
-      value: 2, // vai vir da api
+      value: data.inProgress,
       icon: Clock,
       description: 'Sendo resolvidos',
       color: 'text-blue-600',
     },
     {
       title: 'Fechados',
-      value: 2, // vai vir da api
+      value: data.closed,
       icon: CheckCircle,
       description: 'Resolvidos',
       color: 'text-emerald-600',
@@ -114,7 +120,7 @@ export function Dashboard() {
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          {tickets.map((ticket) => (
+          {data.tickets.map((ticket) => (
             <Link
               key={ticket.id}
               to={`/tickets/${ticket.id}`}

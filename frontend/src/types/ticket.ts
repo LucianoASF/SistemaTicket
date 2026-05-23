@@ -25,3 +25,11 @@ export interface Ticket {
   createdById: string;
   createdByName?: string;
 }
+
+export interface TicketsWithStatusStats {
+  tickets: Ticket[];
+  total: number;
+  open?: number;
+  inProgress?: number;
+  closed?: number;
+}
