@@ -23,4 +23,5 @@ export interface Ticket {
   priority: TicketPriority;
   createdAt: Date;
   createdById: string;
+  createdByName?: string;
 }

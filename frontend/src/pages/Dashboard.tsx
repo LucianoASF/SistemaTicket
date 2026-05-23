@@ -8,22 +8,36 @@ import {
   CardHeader,
   CardTitle,
 } from '#components/ui/card';
-import { tickets } from '#lib/mock';
 import {
   AlertCircle,
   ArrowRight,
   CheckCircle,
   Clock,
-  Ticket,
+  TicketIcon,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
+import type { Ticket } from '../types/ticket';
+import { api } from '#lib/axios.ts';
 
 export function Dashboard() {
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+
+  useEffect(() => {
+    const fetchTickets = async () => {
+      const response = await api.get<{ tickets: Ticket[]; total: number }>(
+        '/tickets?withAuthor=true',
+      );
+      setTickets(response.data.tickets);
+    };
+    fetchTickets();
+  }, []);
+
   const dataCards = [
     {
       title: 'Total de Tickets',
       value: 8, // vai vir da api
-      icon: Ticket,
+      icon: TicketIcon,
       description: 'Todos os tickets',
       color: 'text-muted-foreground',
     },
@@ -49,7 +63,6 @@ export function Dashboard() {
       color: 'text-emerald-600',
     },
   ];
-  const recentTickets = tickets.slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -101,7 +114,7 @@ export function Dashboard() {
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          {recentTickets.map((ticket) => (
+          {tickets.map((ticket) => (
             <Link
               key={ticket.id}
               to={`/tickets/${ticket.id}`}
@@ -117,7 +130,7 @@ export function Dashboard() {
                 </div>
                 <p className="truncate">{ticket.title}</p>
                 <p className="text-sm text-muted-foreground truncate">
-                  Criado por {ticket.author.name} •{' '}
+                  Criado por {ticket.createdByName} •{' '}
                   {new Date(ticket.createdAt).toLocaleDateString()}
                 </p>
               </div>
