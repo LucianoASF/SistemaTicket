@@ -45,8 +45,6 @@ export function Login() {
     resolver: zodResolver(loginSchema),
   });
 
-  if (isSubmitting) console.log(isSubmitting);
-
   const onSubmit = async (data: LoginFormInputs) => {
     await login(data.email, data.password);
   };
@@ -95,6 +93,7 @@ export function Login() {
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Sua senha"
+                      autoComplete="current-password"
                       {...register('password')}
                     />
                     <Button
