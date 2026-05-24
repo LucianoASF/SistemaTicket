@@ -20,7 +20,7 @@ import {
 } from '#components/ui/table';
 import { api } from '#lib/axios.ts';
 import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import {
   TICKET_PRIORITY,
@@ -30,6 +30,7 @@ import {
   type TicketStatus,
 } from '../../types/ticket';
 import { Spinner } from '#components/ui/spinner';
+import { UseUpdateParams } from '#hooks/useUpdateParams';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -70,25 +71,7 @@ export function Tickets() {
 
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
-  const updateParams = useCallback(
-    (params: Record<string, string>) => {
-      setLoading(true);
-      setSearchParams((sp) => {
-        const newParams = new URLSearchParams(sp);
-
-        Object.entries(params).forEach(([key, value]) => {
-          if (!value.trim() || value === 'all') {
-            newParams.delete(key);
-          } else {
-            newParams.set(key, value);
-          }
-        });
-
-        return newParams;
-      });
-    },
-    [setSearchParams],
-  );
+  const updateParams = UseUpdateParams({ setLoading, setSearchParams });
 
   useEffect(() => {
     if (inputValue === searchQuery) return;
