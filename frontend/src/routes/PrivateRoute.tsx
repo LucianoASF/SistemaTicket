@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { useAuth } from '../contexts/useAuth';
-import { USER_ROLE, type UserRole } from '../types/auth';
+import { type UserRole, USER_ROLE } from '../types/role';
 import { LoaidingAuth } from '#components/LoadingAuth';
 
 interface PrivateRouteProps {

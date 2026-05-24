@@ -2,7 +2,7 @@ import { Button } from '#components/ui/button';
 import { FileQuestion, LogIn, Monitor, Ticket } from 'lucide-react';
 import { useAuth } from '../contexts/useAuth';
 import { Link } from 'react-router';
-import { USER_ROLE } from '../types/auth';
+import { USER_ROLE } from '../types/role';
 
 export function NotFound() {
   const { user } = useAuth();
