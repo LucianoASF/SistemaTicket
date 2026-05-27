@@ -47,10 +47,10 @@ public class TicketService : ITicketService
     }
 
     public async Task<PagedTicketsResponseDto> GetAllAsync(int page, string? searchQuery,
-        TicketStatus? status, TicketPriority? priority, bool? withAuthor)
+        TicketStatus? status, TicketPriority? priority)
     {
         page = page < 1 ? 1 : page;
-        var response = await _ticketRepository.GetAllAsync(page, searchQuery, status, priority, withAuthor);
+        var response = await _ticketRepository.GetAllAsync(page, searchQuery, status, priority);
         List<TicketResponseDto> tickets = new();
 
         foreach (var ticket in response.Tickets)
@@ -64,7 +64,7 @@ public class TicketService : ITicketService
                 Priority = ticket.Priority,
                 CreatedAt = ticket.CreatedAt,
                 CreatedById = ticket.CreatedById,
-                CreatedByName = withAuthor == true ? ticket.CreatedByName : null
+                CreatedByName = ticket.CreatedByName
             });
         }
 

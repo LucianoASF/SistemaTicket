@@ -9,7 +9,7 @@ public interface ITicketRepository
     Task<Ticket> CreateAsync(Ticket ticket);
     Task<Ticket?> GetByIdAsync(int id);
     Task<(List<TicketResponseDto> Tickets, int Total, int? Open, int? InProgress, int? Closed)> GetAllAsync
-        (int page, string? searchQuery, TicketStatus? status, TicketPriority? priority, bool? withAuthor);
+        (int page, string? searchQuery, TicketStatus? status, TicketPriority? priority);
     Task SaveAsync();
     void Delete(Ticket ticket);
 }
