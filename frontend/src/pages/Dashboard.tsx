@@ -17,22 +17,24 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import type { TicketsWithStatusStats } from '../types/ticket';
+import type { PagedTickets } from '../types/ticket';
 import { api } from '#lib/axios.ts';
 
 export function Dashboard() {
-  const [data, setData] = useState<TicketsWithStatusStats>({
+  const [data, setData] = useState<PagedTickets>({
     tickets: [],
     total: 0,
-    open: 0,
-    inProgress: 0,
-    closed: 0,
+    statusCounts: {
+      open: 0,
+      inProgress: 0,
+      closed: 0,
+    },
   });
 
   useEffect(() => {
     const fetchTickets = async () => {
-      const response = await api.get<TicketsWithStatusStats>(
-        '/tickets?withAuthor=true',
+      const response = await api.get<PagedTickets>(
+        '/tickets?withStatusCounts=true',
       );
       setData(response.data);
     };
@@ -49,21 +51,21 @@ export function Dashboard() {
     },
     {
       title: 'Abertos',
-      value: data.open,
+      value: data.statusCounts?.open,
       icon: AlertCircle,
       description: 'Todos os tickets',
       color: 'text-amber-600',
     },
     {
       title: 'Em Progresso',
-      value: data.inProgress,
+      value: data.statusCounts?.inProgress,
       icon: Clock,
       description: 'Sendo resolvidos',
       color: 'text-blue-600',
     },
     {
       title: 'Fechados',
-      value: data.closed,
+      value: data.statusCounts?.closed,
       icon: CheckCircle,
       description: 'Resolvidos',
       color: 'text-emerald-600',

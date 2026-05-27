@@ -28,6 +28,7 @@ import {
   type TicketPriority,
   type Ticket,
   type TicketStatus,
+  type PagedTickets,
 } from '../../types/ticket';
 import { Spinner } from '#components/ui/spinner';
 import { UseUpdateParams } from '#hooks/useUpdateParams';
@@ -51,17 +52,14 @@ export function Tickets() {
 
   useEffect(() => {
     const fetchTickets = async () => {
-      const request = await api.get<{ tickets: Ticket[]; total: number }>(
-        '/tickets',
-        {
-          params: {
-            page: currentPage,
-            searchQuery: searchQuery || undefined,
-            status: statusFilter === 'all' ? undefined : statusFilter,
-            priority: priorityFilter === 'all' ? undefined : priorityFilter,
-          },
+      const request = await api.get<PagedTickets>('/tickets', {
+        params: {
+          page: currentPage,
+          searchQuery: searchQuery || undefined,
+          status: statusFilter === 'all' ? undefined : statusFilter,
+          priority: priorityFilter === 'all' ? undefined : priorityFilter,
         },
-      );
+      });
       setTickets(request.data.tickets);
       setTotal(request.data.total);
       setLoading(false);

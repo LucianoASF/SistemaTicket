@@ -26,10 +26,8 @@ export interface Ticket {
   createdByName?: string;
 }
 
-export interface TicketsWithStatusStats {
+export interface PagedTickets {
   tickets: Ticket[];
   total: number;
-  open?: number;
-  inProgress?: number;
-  closed?: number;
+  statusCounts?: Record<Uncapitalize<TicketStatus>, number>;
 }
