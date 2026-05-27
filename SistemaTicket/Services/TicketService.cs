@@ -48,10 +48,10 @@ public class TicketService : ITicketService
     }
 
     public async Task<PagedTicketsResponseDto> GetAllAsync(int page, string? searchQuery,
-        TicketStatus? status, TicketPriority? priority)
+        TicketStatus? status, TicketPriority? priority, bool? withStatusCounts)
     {
         page = page < 1 ? 1 : page;
-        var response = await _ticketRepository.GetAllAsync(page, searchQuery, status, priority);
+        var response = await _ticketRepository.GetAllAsync(page, searchQuery, status, priority, withStatusCounts);
         List<TicketResponseDto> tickets = new();
 
         foreach (var ticket in response.Tickets)
@@ -73,9 +73,12 @@ public class TicketService : ITicketService
         {
             Tickets = tickets,
             Total = response.Total,
-            Open = response.Open,
-            InProgress = response.InProgress,
-            Closed = response.Closed
+            StatusCounts = withStatusCounts == true && response.StatusCounts != null ? new StatusCountsDto
+            {
+                Open = response.StatusCounts.Open,
+                InProgress = response.StatusCounts.InProgress,
+                Closed = response.StatusCounts.Closed
+            } : null
         };
     }
 

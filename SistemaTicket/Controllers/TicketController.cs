@@ -34,10 +34,10 @@ public class TicketController : ControllerBase
 
     [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Support)}")]
     [HttpGet]
-    public async Task<ActionResult<List<TicketResponseDto>>> GetAllAsync([FromQuery] int page,
-        string? searchQuery, TicketStatus? status, TicketPriority? priority)
+    public async Task<ActionResult<PagedTicketsResponseDto>> GetAllAsync(int page,
+        string? searchQuery, TicketStatus? status, TicketPriority? priority, bool? withStatusCounts)
     {
-        return Ok(await _ticketService.GetAllAsync(page, searchQuery, status, priority));
+        return Ok(await _ticketService.GetAllAsync(page, searchQuery, status, priority, withStatusCounts));
     }
 
     [Authorize]

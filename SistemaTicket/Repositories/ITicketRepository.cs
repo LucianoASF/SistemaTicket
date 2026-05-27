@@ -8,8 +8,8 @@ public interface ITicketRepository
 {
     Task<Ticket> CreateAsync(Ticket ticket);
     Task<Ticket?> GetByIdAsync(int id);
-    Task<(List<TicketResponseDto> Tickets, int Total, int? Open, int? InProgress, int? Closed)> GetAllAsync
-        (int page, string? searchQuery, TicketStatus? status, TicketPriority? priority);
+    Task<(List<TicketResponseDto> Tickets, int Total, StatusCountsDto? StatusCounts)> GetAllAsync
+        (int page, string? searchQuery, TicketStatus? status, TicketPriority? priority, bool? withStatusCounts);
     Task SaveAsync();
     void Delete(Ticket ticket);
 }

@@ -21,8 +21,8 @@ public class TicketRepository : ITicketRepository
         return ticket;
     }
 
-    public async Task<(List<TicketResponseDto> Tickets, int Total, int? Open, int? InProgress, int? Closed)> GetAllAsync
-        (int page, string? searchQuery, TicketStatus? status, TicketPriority? priority)
+    public async Task<(List<TicketResponseDto> Tickets, int Total, StatusCountsDto? StatusCounts)> GetAllAsync
+        (int page, string? searchQuery, TicketStatus? status, TicketPriority? priority, bool? withStatusCounts)
     {
         var query = _context.Tickets.AsNoTracking()
             .Where(t => (string.IsNullOrEmpty(searchQuery) || (t.Title.Contains(searchQuery) || t.Id.ToString().Contains(searchQuery)))
@@ -30,7 +30,6 @@ public class TicketRepository : ITicketRepository
             && (!priority.HasValue || t.Priority == priority.Value));
 
         IQueryable<TicketResponseDto> dtoQuery;
-        int total, open, closed, inProgress;
 
         dtoQuery = query.Select(t => new TicketResponseDto
         {
@@ -43,20 +42,6 @@ public class TicketRepository : ITicketRepository
             CreatedById = t.CreatedById,
             CreatedByName = t.CreatedBy.Name
         });
-        var groupedStatus = await query
-.GroupBy(t => t.Status)
-.Select(g => new { g.Key, Count = g.Count() })
-.ToListAsync();
-
-        open = groupedStatus.FirstOrDefault(g => g.Key == TicketStatus.Open)?.Count ?? 0;
-        inProgress = groupedStatus.FirstOrDefault(g => g.Key == TicketStatus.InProgress)?.Count ?? 0;
-        closed = groupedStatus.FirstOrDefault(g => g.Key == TicketStatus.Closed)?.Count ?? 0;
-
-        total = await dtoQuery.CountAsync();
-        var grouped = await query
-            .GroupBy(t => t.Status)
-            .Select(g => new { g.Key, Count = g.Count() })
-            .ToListAsync();
 
         var tickets = await dtoQuery
             .OrderByDescending(t => t.CreatedAt)
@@ -64,7 +49,29 @@ public class TicketRepository : ITicketRepository
             .Take(5)
             .ToListAsync();
 
-        return (tickets, total, open, inProgress, closed);
+        int total = await dtoQuery.CountAsync();
+
+        if (withStatusCounts == true)
+        {
+            var groupedStatus = await query
+                .GroupBy(t => t.Status)
+                .ToDictionaryAsync(
+                    g => g.Key.ToString().ToLower(),
+                    g => g.Count()
+        );
+
+            var statusCounts = new StatusCountsDto
+            {
+                Open = groupedStatus.GetValueOrDefault("open"),
+                InProgress = groupedStatus.GetValueOrDefault("inprogress"),
+                Closed = groupedStatus.GetValueOrDefault("closed")
+            };
+
+
+
+            return (tickets, total, statusCounts);
+        }
+        return (tickets, total, null);
     }
 
     public async Task<Ticket?> GetByIdAsync(int id)
