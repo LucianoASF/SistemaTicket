@@ -13,7 +13,6 @@ public class TicketCreateDto
     [MinLength(10)]
     public string Description { get; set; } = string.Empty;
 
-    [Required]
-    public TicketPriority Priority { get; set; }
+    public TicketPriority? Priority { get; set; }
 
 }

@@ -98,6 +98,18 @@ public class TicketService : ITicketService
     {
         var ticket = await GetTicketOrThrowAsync(id, userId, isUser);
 
+        if (isUser)
+        {
+            if (ticket.Status != ticketUpdateDto.Status)
+            {
+                throw new BadRequestException(new Dictionary<string, string[]>() { { "status", ["you do not have authorization to change the status"] } });
+            }
+            if (ticket.Priority != ticketUpdateDto.Priority)
+            {
+                throw new BadRequestException(new Dictionary<string, string[]>() { { "priority", ["you do not have authorization to change the priority"] } });
+            }
+        }
+
         if (ticketUpdateDto.Status.HasValue && ticketUpdateDto.Status != ticket.Status)
         {
             await _ticketHistoryRepository.CreateAsync(new TicketHistory
@@ -112,11 +124,9 @@ public class TicketService : ITicketService
 
         ticket.Title = ticketUpdateDto.Title;
         ticket.Description = ticketUpdateDto.Description;
-        if (!isUser)
-        {
-            ticket.Priority = VerifyPriority(ticketUpdateDto.Priority);
-            ticket.Status = VerifyStatus(ticketUpdateDto.Status);
-        }
+        ticket.Priority = VerifyPriority(ticketUpdateDto.Priority);
+        ticket.Status = VerifyStatus(ticketUpdateDto.Status);
+
 
         await _ticketRepository.SaveAsync();
 
