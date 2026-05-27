@@ -28,9 +28,9 @@ public class ApplicationUserController : ControllerBase
 
     [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpGet]
-    public async Task<ActionResult<PagedApplicationUsersResponseDto>> GetAllAsync(int page, string? querySearch, UserRole? role)
+    public async Task<ActionResult<PagedApplicationUsersResponseDto>> GetAllAsync(int page, string? searchquery, UserRole? role)
     {
-        return Ok(await _applicationUserService.GetAllAsync(page, querySearch, role));
+        return Ok(await _applicationUserService.GetAllAsync(page, searchquery, role));
     }
 
     [Authorize]

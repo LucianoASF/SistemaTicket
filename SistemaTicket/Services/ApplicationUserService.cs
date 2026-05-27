@@ -54,15 +54,15 @@ public class ApplicationUserService : IApplicationUserService
         };
     }
 
-    public async Task<PagedApplicationUsersResponseDto> GetAllAsync(int page, string? querySearch, UserRole? role)
+    public async Task<PagedApplicationUsersResponseDto> GetAllAsync(int page, string? searchquery, UserRole? role)
     {
         page = page < 1 ? 1 : page;
 
         var query = _userManager.Users.AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(querySearch))
+        if (!string.IsNullOrWhiteSpace(searchquery))
         {
-            query = query.Where(u => u.Name.Contains(querySearch) || u.Email!.Contains(querySearch) || u.Id == querySearch);
+            query = query.Where(u => u.Name.Contains(searchquery) || u.Email!.Contains(searchquery) || u.Id.Contains(searchquery));
         }
 
         if (role.HasValue)
