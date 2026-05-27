@@ -17,5 +17,5 @@ public class TicketResponseDto
 
     public string CreatedById { get; set; } = string.Empty;
 
-    public string? CreatedByName { get; set; }
+    public string CreatedByName { get; set; } = string.Empty;
 }

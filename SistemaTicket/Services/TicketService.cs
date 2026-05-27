@@ -42,7 +42,8 @@ public class TicketService : ITicketService
             Status = response.Status,
             Priority = response.Priority,
             CreatedAt = response.CreatedAt,
-            CreatedById = response.CreatedById
+            CreatedById = response.CreatedById,
+            CreatedByName = response.CreatedBy.Name
         };
     }
 
@@ -90,7 +91,8 @@ public class TicketService : ITicketService
             Status = ticket.Status,
             Priority = ticket.Priority,
             CreatedAt = ticket.CreatedAt,
-            CreatedById = ticket.CreatedById
+            CreatedById = ticket.CreatedById,
+            CreatedByName = ticket.CreatedBy.Name
         };
     }
 
@@ -138,7 +140,9 @@ public class TicketService : ITicketService
             Status = ticket.Status,
             Priority = ticket.Priority,
             CreatedAt = ticket.CreatedAt,
-            CreatedById = ticket.CreatedById
+            CreatedById = ticket.CreatedById,
+            CreatedByName = ticket.CreatedBy.Name
+
         };
     }
     public async Task DeleteAsync(int id, string userId, bool isUser)

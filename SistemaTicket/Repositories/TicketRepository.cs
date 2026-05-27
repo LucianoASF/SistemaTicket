@@ -41,7 +41,7 @@ public class TicketRepository : ITicketRepository
             Priority = t.Priority,
             CreatedAt = t.CreatedAt,
             CreatedById = t.CreatedById,
-            CreatedByName = t.CreatedBy!.Name
+            CreatedByName = t.CreatedBy.Name
         });
         var groupedStatus = await query
 .GroupBy(t => t.Status)
