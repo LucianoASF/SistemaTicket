@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using SistemaTicket.Entities;
+using SistemaTicket.Enums;
 
 namespace SistemaTicket.Data.Seed;
 
@@ -7,47 +8,60 @@ public static class SeedData
 {
     public static async Task InitializeAsync(IServiceProvider serviceProvider)
     {
-        var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-        await SeedRolesAsync(roleManager);
         await SeedAdminAsync(userManager);
-    }
-    private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
-    {
-        string[] roles = ["Admin", "Support", "User"];
-
-        foreach (var role in roles)
-        {
-            var exists = await roleManager.RoleExistsAsync(role);
-
-            if (!exists)
-                await roleManager.CreateAsync(new IdentityRole(role));
-        }
     }
     private static async Task SeedAdminAsync(UserManager<ApplicationUser> userManager)
     {
         var adminEmail = "admin@system.com";
+        var supportEmail = "support@system.com";
+        var userEmail = "user@system.com";
 
         var admin = await userManager.FindByEmailAsync(adminEmail);
+        var support = await userManager.FindByEmailAsync(supportEmail);
+        var user = await userManager.FindByEmailAsync(userEmail);
 
         if (admin == null)
         {
             admin = new ApplicationUser
             {
                 UserName = adminEmail,
-                Name = "Admin",
+                Name = "SystemAdmin",
                 Email = adminEmail,
                 EmailConfirmed = true,
+                Role = UserRole.Admin,
                 CreatedAt = DateTimeOffset.UtcNow,
             };
 
             var result = await userManager.CreateAsync(admin, "Admin@123");
-
-            if (result.Succeeded)
+        }
+        if (support == null)
+        {
+            support = new ApplicationUser
             {
-                await userManager.AddToRoleAsync(admin, "Admin");
-            }
+                UserName = supportEmail,
+                Name = "SystemSupport",
+                Email = supportEmail,
+                EmailConfirmed = true,
+                Role = UserRole.Support,
+                CreatedAt = DateTimeOffset.UtcNow,
+            };
+
+            var result = await userManager.CreateAsync(support, "Support@123");
+        }
+        if (user == null)
+        {
+            user = new ApplicationUser
+            {
+                UserName = userEmail,
+                Name = "SystemUser",
+                Email = userEmail,
+                EmailConfirmed = true,
+                Role = UserRole.User,
+                CreatedAt = DateTimeOffset.UtcNow,
+            };
+
+            var result = await userManager.CreateAsync(user, "User@123");
         }
     }
 }

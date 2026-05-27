@@ -4,7 +4,7 @@ using SistemaTicket.Entities;
 
 namespace SistemaTicket.Data;
 
-public class AppDbContext : IdentityDbContext<ApplicationUser>
+public class AppDbContext : IdentityUserContext<ApplicationUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {

@@ -16,6 +16,8 @@ public class ApplicationUserUpdateDto
 
     [StringLength(60, MinimumLength = 6)]
     public string? Password { get; set; }
-    public UserRole? Role { get; set; }
+
+    [EnumDataType(typeof(UserRole))]
+    public UserRole Role { get; set; }
 
 }

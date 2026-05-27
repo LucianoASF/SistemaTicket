@@ -2,7 +2,6 @@
 using Microsoft.IdentityModel.Tokens;
 using SistemaTicket.Dtos.Login;
 using SistemaTicket.Entities;
-using SistemaTicket.Enums;
 using SistemaTicket.Exceptions;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -55,15 +54,10 @@ public class AuthService : IAuthService
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Name, user.Name)
+            new Claim(ClaimTypes.Name, user.Name),
+            new Claim(ClaimTypes.Role, user.Role.ToString())
         };
 
-        var roles = await _userManager.GetRolesAsync(user);
-
-        foreach (var role in roles)
-        {
-            claims.Add(new Claim(ClaimTypes.Role, role));
-        }
         DateTimeOffset expires = DateTimeOffset.UtcNow.AddMinutes(int.Parse(ExpireMinutesString));
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],
@@ -86,7 +80,7 @@ public class AuthService : IAuthService
             Id = user!.Id,
             Name = user.Name,
             Email = user.Email ?? string.Empty,
-            Role = Enum.Parse<UserRole>((await _userManager.GetRolesAsync(user))[0])
+            Role = user.Role
         };
     }
 }

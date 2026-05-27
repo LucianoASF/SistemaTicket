@@ -18,7 +18,7 @@ public class ApplicationUserCreateDto
     [StringLength(60, MinimumLength = 6)]
     public string Password { get; set; } = string.Empty;
 
-    [Required]
+    [EnumDataType(typeof(UserRole))]
     public UserRole Role { get; set; }
 
 }

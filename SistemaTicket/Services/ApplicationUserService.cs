@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using SistemaTicket.Data;
 using SistemaTicket.Dtos.ApplicationUser;
 using SistemaTicket.Entities;
-using SistemaTicket.Enums;
 using SistemaTicket.Exceptions;
 using SistemaTicket.Extentions;
 using System.Data;
@@ -13,12 +12,10 @@ namespace SistemaTicket.Services;
 public class ApplicationUserService : IApplicationUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly AppDbContext _context;
-    public ApplicationUserService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, AppDbContext context)
+    public ApplicationUserService(UserManager<ApplicationUser> userManager, AppDbContext context)
     {
         _userManager = userManager;
-        _roleManager = roleManager;
         _context = context;
     }
     public async Task<ApplicationUserResponseDto> CreateAsync(ApplicationUserCreateDto applicationUserCreateDto)
@@ -28,58 +25,32 @@ public class ApplicationUserService : IApplicationUserService
             Name = applicationUserCreateDto.Name,
             Email = applicationUserCreateDto.Email,
             UserName = applicationUserCreateDto.Email,
+            Role = applicationUserCreateDto.Role,
             CreatedAt = DateTimeOffset.UtcNow
         };
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-        try
+
+        var result = await _userManager.CreateAsync(applicationUser, applicationUserCreateDto.Password);
+
+        if (!result.Succeeded)
         {
+            var errors = result.Errors
+                .GroupBy(e => e.ToFieldName())
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(e => e.Description).ToArray()
+                );
 
-
-            if (!await _roleManager.RoleExistsAsync(applicationUserCreateDto.Role.ToString()))
-            {
-                throw new BadRequestException(new Dictionary<string, string[]> { { "role", new[] { $"The role '{applicationUserCreateDto.Role}' does not exist." } } });
-            }
-
-            var result = await _userManager.CreateAsync(applicationUser, applicationUserCreateDto.Password);
-
-            if (!result.Succeeded)
-            {
-                var errors = result.Errors
-                    .GroupBy(e => e.ToFieldName())
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.Select(e => e.Description).ToArray()
-                    );
-
-                throw new BadRequestException(errors);
-            }
-            var roleResult = await _userManager.AddToRoleAsync(applicationUser, applicationUserCreateDto.Role.ToString());
-            if (!roleResult.Succeeded)
-            {
-                var errors = roleResult.Errors
-                    .GroupBy(e => e.ToFieldName())
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.Select(e => e.Description).ToArray()
-                    );
-                throw new BadRequestException(errors);
-            }
-            await transaction.CommitAsync();
-
-            return new ApplicationUserResponseDto
-            {
-                Id = applicationUser.Id,
-                Name = applicationUser.Name,
-                Email = applicationUser.Email,
-                CreatedAt = applicationUser.CreatedAt,
-                Role = applicationUserCreateDto.Role
-            };
+            throw new BadRequestException(errors);
         }
-        catch (Exception)
+
+        return new ApplicationUserResponseDto
         {
-            await transaction.RollbackAsync();
-            throw;
-        }
+            Id = applicationUser.Id,
+            Name = applicationUser.Name,
+            Email = applicationUser.Email,
+            CreatedAt = applicationUser.CreatedAt,
+            Role = applicationUser.Role
+        };
     }
 
     public async Task<List<ApplicationUserResponseDto>> GetAllAsync(int page)
@@ -101,14 +72,13 @@ public class ApplicationUserService : IApplicationUserService
             if (string.IsNullOrWhiteSpace(user.Email))
                 throw new InvalidOperationException("Email is null or empty.");
 
-            var roles = await _userManager.GetRolesAsync(user);
             userDtos.Add(new ApplicationUserResponseDto
             {
                 Id = user.Id,
                 Name = user.Name,
                 Email = user.Email,
                 CreatedAt = user.CreatedAt,
-                Role = Enum.Parse<UserRole>(roles.First(), true)
+                Role = user.Role
             });
         }
 
@@ -125,19 +95,18 @@ public class ApplicationUserService : IApplicationUserService
         if (string.IsNullOrWhiteSpace(user.Email))
             throw new InvalidOperationException("Email is null or empty.");
 
-        var roles = await _userManager.GetRolesAsync(user);
         return new ApplicationUserResponseDto
         {
             Id = user.Id,
             Name = user.Name,
             Email = user.Email,
             CreatedAt = user.CreatedAt,
-            Role = Enum.Parse<UserRole>(roles.First(), true)
+            Role = user.Role
         };
     }
     public async Task<ApplicationUserResponseDto> UpdateAsync(string id, ApplicationUserUpdateDto applicationUserUpdateDto, bool isAdmin)
     {
-        if (!isAdmin && applicationUserUpdateDto.Role != null)
+        if (!isAdmin)
             throw new ForbiddenException("You cannot change roles.");
 
         var user = await _userManager.FindByIdAsync(id);
@@ -145,11 +114,11 @@ public class ApplicationUserService : IApplicationUserService
         {
             throw new NotFoundException("User not found.");
         }
-        var currentRoles = await _userManager.GetRolesAsync(user);
 
         user.Name = applicationUserUpdateDto.Name;
         user.Email = applicationUserUpdateDto.Email;
         user.UserName = applicationUserUpdateDto.Email;
+        user.Role = applicationUserUpdateDto.Role;
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -173,48 +142,7 @@ public class ApplicationUserService : IApplicationUserService
                 throw new BadRequestException(errors);
             }
 
-            if (applicationUserUpdateDto.Role == null)
-            {
-                applicationUserUpdateDto.Role = Enum.Parse<UserRole>(currentRoles.First(), true);
-            }
-
-
-
-            if (!await _roleManager.RoleExistsAsync(applicationUserUpdateDto.Role.ToString()!))
-            {
-                throw new BadRequestException(new Dictionary<string, string[]> { { "roles", new[] { $"The role '{applicationUserUpdateDto.Role}' does not exist." } } });
-            }
-
-            if (applicationUserUpdateDto.Role.ToString() != currentRoles.First())
-            {
-                var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
-                if (!removeResult.Succeeded)
-                {
-                    var errors = removeResult.Errors
-                        .GroupBy(e => e.ToFieldName())
-                        .ToDictionary(
-                            g => g.Key,
-                            g => g.Select(e => e.Description).ToArray()
-                        );
-                    throw new BadRequestException(errors);
-                }
-                var addResult = await _userManager.AddToRoleAsync(user, applicationUserUpdateDto.Role.ToString()!);
-                if (!addResult.Succeeded)
-                {
-                    var errors = addResult.Errors
-                        .GroupBy(e => e.ToFieldName())
-                        .ToDictionary(
-                            g => g.Key,
-                            g => g.Select(e => e.Description).ToArray()
-                        );
-                    throw new BadRequestException(errors);
-                }
-            }
-
             await transaction.CommitAsync();
-
-
-
 
             return new ApplicationUserResponseDto
             {
@@ -222,7 +150,7 @@ public class ApplicationUserService : IApplicationUserService
                 Name = user.Name,
                 Email = user.Email,
                 CreatedAt = user.CreatedAt,
-                Role = applicationUserUpdateDto.Role!.Value
+                Role = applicationUserUpdateDto.Role
             };
         }
         catch (Exception)
@@ -272,6 +200,5 @@ public class ApplicationUserService : IApplicationUserService
             await transaction.RollbackAsync();
             throw;
         }
-
     }
 }
