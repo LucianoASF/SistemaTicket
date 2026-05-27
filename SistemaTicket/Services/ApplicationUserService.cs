@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SistemaTicket.Data;
 using SistemaTicket.Dtos.ApplicationUser;
 using SistemaTicket.Entities;
+using SistemaTicket.Enums;
 using SistemaTicket.Exceptions;
 using SistemaTicket.Extentions;
 using System.Data;
@@ -53,17 +54,34 @@ public class ApplicationUserService : IApplicationUserService
         };
     }
 
-    public async Task<List<ApplicationUserResponseDto>> GetAllAsync(int page)
+    public async Task<PagedApplicationUsersResponseDto> GetAllAsync(int page, string? querySearch, UserRole? role)
     {
         page = page < 1 ? 1 : page;
 
-        var users = await _userManager
-            .Users
-            .AsNoTracking()
+        var query = _userManager.Users.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(querySearch))
+        {
+            query = query.Where(u => u.Name.Contains(querySearch) || u.Email!.Contains(querySearch) || u.Id == querySearch);
+        }
+
+        if (role.HasValue)
+        {
+            query = query.Where(u => u.Role == role.Value);
+        }
+
+        var users = await query
             .OrderByDescending(u => u.CreatedAt)
-            .Skip((page - 1) * 10)
-            .Take(10)
+            .Skip((page - 1) * 5)
+            .Take(5)
             .ToListAsync();
+
+        var groupedStatus = await query
+                .GroupBy(u => u.Role)
+                .ToDictionaryAsync(
+                    g => g.Key.ToString().ToLower(),
+                    g => g.Count()
+                );
 
         var userDtos = new List<ApplicationUserResponseDto>();
 
@@ -82,7 +100,12 @@ public class ApplicationUserService : IApplicationUserService
             });
         }
 
-        return userDtos;
+        return new PagedApplicationUsersResponseDto
+        {
+            Users = userDtos,
+            RoleCounts = groupedStatus,
+            Total = await query.CountAsync()
+        };
     }
 
     public async Task<ApplicationUserResponseDto> GetByIdAsync(string id)
