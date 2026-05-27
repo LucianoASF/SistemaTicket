@@ -103,7 +103,12 @@ public class ApplicationUserService : IApplicationUserService
         return new PagedApplicationUsersResponseDto
         {
             Users = userDtos,
-            RoleCounts = groupedStatus,
+            RoleCounts = new RoleCountsDto
+            {
+                Admin = groupedStatus.GetValueOrDefault("admin", 0),
+                Support = groupedStatus.GetValueOrDefault("support", 0),
+                User = groupedStatus.GetValueOrDefault("user", 0)
+            },
             Total = await query.CountAsync()
         };
     }
