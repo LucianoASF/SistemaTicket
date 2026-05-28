@@ -39,7 +39,7 @@ export function Users() {
   const roleFilter = searchParams.get('role') || '';
   const searchQuery = searchParams.get('searchQuery') || '';
   const currentPage = Number(searchParams.get('page') || 1);
-  const inactives = searchParams.get('inactives') || 'false';
+  const inactives = searchParams.get('inactives') || '';
 
   const [data, setData] = useState<PagedUsers>({
     users: [],
@@ -59,8 +59,8 @@ export function Users() {
         params: {
           page: currentPage,
           searchQuery: searchQuery || undefined,
-          role: roleFilter || undefined,
-          inactives: inactives === 'true' ? 'true' : undefined,
+          role: roleFilter === 'all' ? undefined : roleFilter || undefined,
+          inactives: inactives === 'all' ? undefined : inactives || undefined,
         },
       });
       setData(response.data);
@@ -138,9 +138,7 @@ export function Users() {
           <Select
             value={roleFilter}
             onValueChange={(v: UserRole | 'all') => {
-              setLoading(true);
-              if (!v.trim() || v === 'all') updateParams({ searchQuery });
-              else updateParams({ role: v });
+              updateParams({ role: v, page: '1' });
             }}
           >
             <SelectTrigger className="flex-1 truncate md:min-w-50">
@@ -156,14 +154,14 @@ export function Users() {
           <Select
             value={inactives}
             onValueChange={(v) => {
-              setLoading(true);
-              updateParams({ inactives: v });
+              updateParams({ inactives: v, page: '1' });
             }}
           >
             <SelectTrigger className="flex-1 truncate md:min-w-50">
-              <SelectValue />
+              <SelectValue placeholder="Usuários" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">Todas os usuários</SelectItem>
               <SelectItem value="false">Ativo</SelectItem>
               <SelectItem value="true">Inativo</SelectItem>
             </SelectContent>

@@ -82,7 +82,7 @@ public class ApplicationUserService : IApplicationUserService
         {
             query = query.Where(u => u.IsActive == false);
         }
-        else
+        else if (inactives.HasValue && inactives.Value == false)
         {
             query = query.Where(u => u.IsActive == true);
         }
