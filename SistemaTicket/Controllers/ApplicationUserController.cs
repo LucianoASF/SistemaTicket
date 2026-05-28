@@ -35,7 +35,7 @@ public class ApplicationUserController : ControllerBase
 
     [Authorize]
     [HttpGet("{id}")]
-    public async Task<ActionResult<ApplicationUserResponseDto>> GetByIdAsync(string id)
+    public async Task<ActionResult<ApplicationUserWithTicketsResponseDto>> GetByIdAsync(string id)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var isUser = User.IsInRole(nameof(UserRole.User));

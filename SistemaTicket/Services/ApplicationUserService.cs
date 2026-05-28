@@ -132,60 +132,86 @@ public class ApplicationUserService : IApplicationUserService
         };
     }
 
-    public async Task<ApplicationUserResponseDto> GetByIdAsync(string id)
+    public async Task<ApplicationUserWithTicketsResponseDto> GetByIdAsync(string id)
     {
-        var user = await _userManager.Users
+        var response = await _userManager.Users
             .AsNoTracking()
             .Where(u => u.Id == id)
-            .Select(u => new ApplicationUserResponseDto
+            .Select(u => new ApplicationUserWithTicketsResponseDto
             {
-                Id = u.Id,
-                Name = u.Name,
-                Email = u.Email ?? string.Empty,
-                CreatedAt = u.CreatedAt,
-                Role = u.Role,
-                IsActive = u.IsActive,
-
-                CreatedTickets = u.CreatedTickets.Select(t => new TicketResponseDto
+                User = new ApplicationUserResponseDto
                 {
-                    Id = t.Id,
-                    Title = t.Title,
-                    Description = t.Description,
-                    Status = t.Status,
-                    CreatedAt = t.CreatedAt,
-                    CreatedById = t.CreatedById,
-                    AssignedToId = t.AssignedToId,
-                    CreatedByName = t.CreatedBy.Name,
-                    AssignedToName = t.AssignedTo != null
-                        ? t.AssignedTo.Name
-                        : null
-                }).ToList(),
+                    Id = u.Id,
+                    Name = u.Name,
+                    Email = u.Email ?? string.Empty,
+                    CreatedAt = u.CreatedAt,
+                    Role = u.Role,
+                    IsActive = u.IsActive
+                },
+                CreatedTicketsCount = u.CreatedTickets.Count(),
 
-                AssignedTickets = u.AssignedTickets.Select(t => new TicketResponseDto
+                CreatedTicketsStatusCounts = new StatusCountsDto
                 {
-                    Id = t.Id,
-                    Title = t.Title,
-                    Description = t.Description,
-                    Status = t.Status,
-                    CreatedAt = t.CreatedAt,
-                    CreatedById = t.CreatedById,
-                    AssignedToId = t.AssignedToId,
-                    CreatedByName = t.CreatedBy.Name,
-                    AssignedToName = t.AssignedTo != null
-                        ? t.AssignedTo.Name
-                        : null
-                }).ToList()
+                    Open = u.CreatedTickets.Count(t => t.Status == TicketStatus.Open),
+                    InProgress = u.CreatedTickets.Count(t => t.Status == TicketStatus.InProgress),
+                    Closed = u.CreatedTickets.Count(t => t.Status == TicketStatus.Closed)
+                },
+
+                AssignedTicketsCount = u.AssignedTickets.Count(),
+
+                AssignedTicketsStatusCounts = new StatusCountsDto
+                {
+                    Open = u.AssignedTickets.Count(t => t.Status == TicketStatus.Open),
+                    InProgress = u.AssignedTickets.Count(t => t.Status == TicketStatus.InProgress),
+                    Closed = u.AssignedTickets.Count(t => t.Status == TicketStatus.Closed)
+                },
+
+                CreatedTickets = u.CreatedTickets
+                    .OrderByDescending(t => t.CreatedAt)
+                    .Take(5)
+                    .Select(t => new TicketResponseDto
+                    {
+                        Id = t.Id,
+                        Title = t.Title,
+                        Description = t.Description,
+                        Status = t.Status,
+                        CreatedAt = t.CreatedAt,
+                        CreatedById = t.CreatedById,
+                        AssignedToId = t.AssignedToId,
+                        CreatedByName = t.CreatedBy.Name,
+                        AssignedToName = t.AssignedTo != null
+                            ? t.AssignedTo.Name
+                            : null
+                    }).ToList(),
+
+                AssignedTickets = u.AssignedTickets
+                    .OrderByDescending(t => t.CreatedAt)
+                    .Take(5)
+                    .Select(t => new TicketResponseDto
+                    {
+                        Id = t.Id,
+                        Title = t.Title,
+                        Description = t.Description,
+                        Status = t.Status,
+                        CreatedAt = t.CreatedAt,
+                        CreatedById = t.CreatedById,
+                        AssignedToId = t.AssignedToId,
+                        CreatedByName = t.CreatedBy.Name,
+                        AssignedToName = t.AssignedTo != null
+                            ? t.AssignedTo.Name
+                            : null
+                    }).ToList()
             })
             .FirstOrDefaultAsync();
 
-        if (user == null)
+        if (response == null)
         {
             throw new NotFoundException("User not found.");
         }
-        if (string.IsNullOrWhiteSpace(user.Email))
+        if (string.IsNullOrWhiteSpace(response.User.Email))
             throw new InvalidOperationException("Email is null or empty.");
 
-        return user;
+        return response;
     }
     public async Task<ApplicationUserResponseDto> UpdateAsync(string id, ApplicationUserUpdateDto applicationUserUpdateDto, bool isAdmin)
     {
