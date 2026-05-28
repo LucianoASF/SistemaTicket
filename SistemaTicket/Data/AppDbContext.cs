@@ -31,13 +31,13 @@ public class AppDbContext : IdentityUserContext<ApplicationUser>
 
         modelBuilder.Entity<Ticket>()
             .HasOne(t => t.CreatedBy)
-            .WithMany()
+            .WithMany(t => t.CreatedTickets)
             .HasForeignKey(t => t.CreatedById)
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Ticket>()
             .HasOne(t => t.AssignedTo)
-            .WithMany()
+            .WithMany(t => t.AssignedTickets)
             .HasForeignKey(t => t.AssignedToId)
             .OnDelete(DeleteBehavior.NoAction);
     }

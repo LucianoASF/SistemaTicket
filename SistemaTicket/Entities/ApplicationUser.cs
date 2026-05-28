@@ -13,7 +13,8 @@ public class ApplicationUser : IdentityUser
     public DateTimeOffset CreatedAt { get; set; }
     public UserRole Role { get; set; }
     public bool IsActive { get; set; } = true;
-    public List<Ticket>? Tickets { get; set; }
+    public List<Ticket> CreatedTickets { get; set; } = [];
+    public List<Ticket> AssignedTickets { get; set; } = [];
 
 
     //public List<TicketComment> TicketComments { get; set; } = new(); Já tem na Fluent API
