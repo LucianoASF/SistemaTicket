@@ -28,6 +28,18 @@ public class AppDbContext : IdentityUserContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(th => th.ChangeById)
             .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Ticket>()
+            .HasOne(t => t.CreatedBy)
+            .WithMany()
+            .HasForeignKey(t => t.CreatedById)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Ticket>()
+            .HasOne(t => t.AssignedTo)
+            .WithMany()
+            .HasForeignKey(t => t.AssignedToId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 
 }
