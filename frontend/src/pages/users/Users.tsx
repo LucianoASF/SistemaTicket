@@ -39,6 +39,7 @@ export function Users() {
   const roleFilter = searchParams.get('role') || '';
   const searchQuery = searchParams.get('searchQuery') || '';
   const currentPage = Number(searchParams.get('page') || 1);
+  const inactives = searchParams.get('inactives') || 'false';
 
   const [data, setData] = useState<PagedUsers>({
     users: [],
@@ -59,13 +60,14 @@ export function Users() {
           page: currentPage,
           searchQuery: searchQuery || undefined,
           role: roleFilter || undefined,
+          inactives: inactives === 'true' ? 'true' : undefined,
         },
       });
       setData(response.data);
       setLoading(false);
     };
     fetchUsers();
-  }, [currentPage, roleFilter, searchQuery]);
+  }, [currentPage, inactives, roleFilter, searchQuery]);
 
   const updateParams = UseUpdateParams({ setLoading, setSearchParams });
 
@@ -132,24 +134,41 @@ export function Users() {
             onChange={(e) => setInputQuery(e.target.value)}
           />
         </div>
-        <Select
-          value={roleFilter}
-          onValueChange={(v: UserRole | 'all') => {
-            setLoading(true);
-            if (!v.trim() || v === 'all') setSearchParams({ searchQuery });
-            else setSearchParams({ searchQuery, role: v });
-          }}
-        >
-          <SelectTrigger className="flex-1 truncate md:min-w-50">
-            <SelectValue placeholder="Função" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as funções</SelectItem>
-            <SelectItem value={USER_ROLE.ADMIN}>Admin</SelectItem>
-            <SelectItem value={USER_ROLE.SUPPORT}>Support</SelectItem>
-            <SelectItem value={USER_ROLE.USER}>User</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-3 min-w-0">
+          <Select
+            value={roleFilter}
+            onValueChange={(v: UserRole | 'all') => {
+              setLoading(true);
+              if (!v.trim() || v === 'all') updateParams({ searchQuery });
+              else updateParams({ role: v });
+            }}
+          >
+            <SelectTrigger className="flex-1 truncate md:min-w-50">
+              <SelectValue placeholder="Função" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as funções</SelectItem>
+              <SelectItem value={USER_ROLE.ADMIN}>Admin</SelectItem>
+              <SelectItem value={USER_ROLE.SUPPORT}>Support</SelectItem>
+              <SelectItem value={USER_ROLE.USER}>User</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={inactives}
+            onValueChange={(v) => {
+              setLoading(true);
+              updateParams({ inactives: v });
+            }}
+          >
+            <SelectTrigger className="flex-1 truncate md:min-w-50">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="false">Ativo</SelectItem>
+              <SelectItem value="true">Inativo</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {dataCards.map((data) => (
