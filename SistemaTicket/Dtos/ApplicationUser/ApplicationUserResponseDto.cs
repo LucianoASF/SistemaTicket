@@ -1,4 +1,5 @@
-﻿using SistemaTicket.Enums;
+﻿using SistemaTicket.Dtos.Ticket;
+using SistemaTicket.Enums;
 
 namespace SistemaTicket.Dtos.ApplicationUser;
 
@@ -10,4 +11,6 @@ public class ApplicationUserResponseDto
     public DateTimeOffset CreatedAt { get; set; }
     public UserRole Role { get; set; }
     public bool IsActive { get; set; }
+    public List<TicketResponseDto>? CreatedTickets { get; set; }
+    public List<TicketResponseDto>? AssignedTickets { get; set; }
 }

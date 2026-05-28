@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SistemaTicket.Data;
 using SistemaTicket.Dtos.ApplicationUser;
+using SistemaTicket.Dtos.Ticket;
 using SistemaTicket.Entities;
 using SistemaTicket.Enums;
 using SistemaTicket.Exceptions;
@@ -133,7 +134,50 @@ public class ApplicationUserService : IApplicationUserService
 
     public async Task<ApplicationUserResponseDto> GetByIdAsync(string id)
     {
-        var user = await _userManager.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
+        var user = await _userManager.Users
+            .AsNoTracking()
+            .Where(u => u.Id == id)
+            .Select(u => new ApplicationUserResponseDto
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Email = u.Email ?? string.Empty,
+                CreatedAt = u.CreatedAt,
+                Role = u.Role,
+                IsActive = u.IsActive,
+
+                CreatedTickets = u.CreatedTickets.Select(t => new TicketResponseDto
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Description = t.Description,
+                    Status = t.Status,
+                    CreatedAt = t.CreatedAt,
+                    CreatedById = t.CreatedById,
+                    AssignedToId = t.AssignedToId,
+                    CreatedByName = t.CreatedBy.Name,
+                    AssignedToName = t.AssignedTo != null
+                        ? t.AssignedTo.Name
+                        : null
+                }).ToList(),
+
+                AssignedTickets = u.AssignedTickets.Select(t => new TicketResponseDto
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Description = t.Description,
+                    Status = t.Status,
+                    CreatedAt = t.CreatedAt,
+                    CreatedById = t.CreatedById,
+                    AssignedToId = t.AssignedToId,
+                    CreatedByName = t.CreatedBy.Name,
+                    AssignedToName = t.AssignedTo != null
+                        ? t.AssignedTo.Name
+                        : null
+                }).ToList()
+            })
+            .FirstOrDefaultAsync();
+
         if (user == null)
         {
             throw new NotFoundException("User not found.");
@@ -141,15 +185,7 @@ public class ApplicationUserService : IApplicationUserService
         if (string.IsNullOrWhiteSpace(user.Email))
             throw new InvalidOperationException("Email is null or empty.");
 
-        return new ApplicationUserResponseDto
-        {
-            Id = user.Id,
-            Name = user.Name,
-            Email = user.Email,
-            CreatedAt = user.CreatedAt,
-            Role = user.Role,
-            IsActive = user.IsActive
-        };
+        return user;
     }
     public async Task<ApplicationUserResponseDto> UpdateAsync(string id, ApplicationUserUpdateDto applicationUserUpdateDto, bool isAdmin)
     {

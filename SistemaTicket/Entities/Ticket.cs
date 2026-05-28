@@ -19,7 +19,7 @@ public class Ticket
     public string CreatedById { get; set; } = string.Empty;
     public ApplicationUser CreatedBy { get; set; } = null!;
     public string? AssignedToId { get; set; }
-    public ApplicationUser? AssignedTo { get; set; }
+    public ApplicationUser AssignedTo { get; set; } = null!;
     public List<TicketComment>? TicketComments { get; set; }
     public List<TicketHistory>? TicketHistory { get; set; }
 }
