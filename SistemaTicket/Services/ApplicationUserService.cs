@@ -21,13 +21,21 @@ public class ApplicationUserService : IApplicationUserService
     }
     public async Task<ApplicationUserResponseDto> CreateAsync(ApplicationUserCreateDto applicationUserCreateDto)
     {
+        var existingUser = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == applicationUserCreateDto.Email && u.IsActive == false);
+        if (existingUser != null)
+        {
+            throw new BadRequestException(new Dictionary<string, string[]>
+            { { "Email", new[] { "to an inactivated user with this email. To activate this user, contact the system administrator." } } });
+        }
+
         var applicationUser = new ApplicationUser
         {
             Name = applicationUserCreateDto.Name,
             Email = applicationUserCreateDto.Email,
             UserName = applicationUserCreateDto.Email,
             Role = applicationUserCreateDto.Role,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow,
+            IsActive = true
         };
 
         var result = await _userManager.CreateAsync(applicationUser, applicationUserCreateDto.Password);
@@ -54,7 +62,7 @@ public class ApplicationUserService : IApplicationUserService
         };
     }
 
-    public async Task<PagedApplicationUsersResponseDto> GetAllAsync(int page, string? searchquery, UserRole? role)
+    public async Task<PagedApplicationUsersResponseDto> GetAllAsync(int page, string? searchquery, UserRole? role, bool? inactives)
     {
         page = page < 1 ? 1 : page;
 
@@ -68,6 +76,15 @@ public class ApplicationUserService : IApplicationUserService
         if (role.HasValue)
         {
             query = query.Where(u => u.Role == role.Value);
+        }
+
+        if (inactives.HasValue && inactives.Value == true)
+        {
+            query = query.Where(u => u.IsActive == false);
+        }
+        else
+        {
+            query = query.Where(u => u.IsActive == true);
         }
 
         var users = await query
@@ -96,7 +113,8 @@ public class ApplicationUserService : IApplicationUserService
                 Name = user.Name,
                 Email = user.Email,
                 CreatedAt = user.CreatedAt,
-                Role = user.Role
+                Role = user.Role,
+                IsActive = user.IsActive,
             });
         }
 
@@ -129,18 +147,21 @@ public class ApplicationUserService : IApplicationUserService
             Name = user.Name,
             Email = user.Email,
             CreatedAt = user.CreatedAt,
-            Role = user.Role
+            Role = user.Role,
+            IsActive = user.IsActive
         };
     }
     public async Task<ApplicationUserResponseDto> UpdateAsync(string id, ApplicationUserUpdateDto applicationUserUpdateDto, bool isAdmin)
     {
-        if (!isAdmin)
-            throw new ForbiddenException("You cannot change roles.");
-
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)
         {
             throw new NotFoundException("User not found.");
+        }
+
+        if (!isAdmin && user.Role != applicationUserUpdateDto.Role)
+        {
+            throw new BadRequestException(new Dictionary<string, string[]> { { "role", new[] { "you are not allowed to change the role." } } });
         }
 
         user.Name = applicationUserUpdateDto.Name;
@@ -178,7 +199,8 @@ public class ApplicationUserService : IApplicationUserService
                 Name = user.Name,
                 Email = user.Email,
                 CreatedAt = user.CreatedAt,
-                Role = applicationUserUpdateDto.Role
+                Role = applicationUserUpdateDto.Role,
+                IsActive = user.IsActive
             };
         }
         catch (Exception)
@@ -189,44 +211,24 @@ public class ApplicationUserService : IApplicationUserService
     }
     public async Task DeleteAsync(string id)
     {
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-        try
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
         {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
-            {
-                throw new NotFoundException("User not found.");
-            }
-
-            await _context.TicketComments
-                .Where(tc => tc.UserId == id)
-                .ExecuteDeleteAsync();
-
-            await _context.TicketHistories
-                .Where(th => th.ChangeById == id)
-                .ExecuteDeleteAsync();
-
-            await _context.Tickets
-                .Where(t => t.CreatedById == id)
-                .ExecuteDeleteAsync();
-
-            var result = await _userManager.DeleteAsync(user);
-            if (!result.Succeeded)
-            {
-                var errors = result.Errors
-                    .GroupBy(e => e.ToFieldName())
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.Select(e => e.Description).ToArray()
-                    );
-                throw new BadRequestException(errors);
-            }
-            await transaction.CommitAsync();
+            throw new NotFoundException("User not found.");
         }
-        catch (Exception)
+
+        user.IsActive = false;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
         {
-            await transaction.RollbackAsync();
-            throw;
+            var errors = result.Errors
+                .GroupBy(e => e.ToFieldName())
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(e => e.Description).ToArray()
+                );
+            throw new BadRequestException(errors);
         }
     }
 }

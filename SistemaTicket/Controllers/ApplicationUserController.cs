@@ -28,9 +28,9 @@ public class ApplicationUserController : ControllerBase
 
     [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpGet]
-    public async Task<ActionResult<PagedApplicationUsersResponseDto>> GetAllAsync(int page, string? searchquery, UserRole? role)
+    public async Task<ActionResult<PagedApplicationUsersResponseDto>> GetAllAsync(int page, string? searchquery, UserRole? role, bool? inactives)
     {
-        return Ok(await _applicationUserService.GetAllAsync(page, searchquery, role));
+        return Ok(await _applicationUserService.GetAllAsync(page, searchquery, role, inactives));
     }
 
     [Authorize]
@@ -60,11 +60,17 @@ public class ApplicationUserController : ControllerBase
         return Ok(await _applicationUserService.UpdateAsync(id, dto, isAdmin));
     }
 
-    [Authorize(Roles = nameof(UserRole.Admin))]
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteAsync(string id)
     {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var isAdmin = User.IsInRole(nameof(UserRole.Admin));
 
+        if (!isAdmin && userId != id)
+        {
+            return Forbid();
+        }
         await _applicationUserService.DeleteAsync(id);
         return NoContent();
     }

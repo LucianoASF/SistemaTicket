@@ -31,6 +31,7 @@ public static class SeedData
                 EmailConfirmed = true,
                 Role = UserRole.Admin,
                 CreatedAt = DateTimeOffset.UtcNow,
+                IsActive = true,
             };
 
             var result = await userManager.CreateAsync(admin, "Admin@123");
@@ -45,6 +46,7 @@ public static class SeedData
                 EmailConfirmed = true,
                 Role = UserRole.Support,
                 CreatedAt = DateTimeOffset.UtcNow,
+                IsActive = true,
             };
 
             var result = await userManager.CreateAsync(support, "Support@123");
@@ -59,6 +61,7 @@ public static class SeedData
                 EmailConfirmed = true,
                 Role = UserRole.User,
                 CreatedAt = DateTimeOffset.UtcNow,
+                IsActive = true,
             };
 
             var result = await userManager.CreateAsync(user, "User@123");

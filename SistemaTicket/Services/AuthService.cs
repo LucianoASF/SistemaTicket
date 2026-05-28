@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SistemaTicket.Dtos.Login;
 using SistemaTicket.Entities;
@@ -6,7 +7,6 @@ using SistemaTicket.Exceptions;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-
 namespace SistemaTicket.Services;
 
 public class AuthService : IAuthService
@@ -23,7 +23,7 @@ public class AuthService : IAuthService
 
     public async Task<LoginResponseDto> LoginAsync(LoginRequestDto dto)
     {
-        var user = await _userManager.FindByEmailAsync(dto.Email);
+        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == dto.Email && u.IsActive);
         if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
         {
             throw new UnauthorizedException("Invalid email or password.");

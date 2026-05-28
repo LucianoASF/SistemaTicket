@@ -9,7 +9,6 @@ using SistemaTicket.Entities;
 using SistemaTicket.Middlewares;
 using SistemaTicket.Repositories;
 using SistemaTicket.Services;
-using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -120,21 +119,12 @@ builder.Services.AddAuthentication(options =>
                 .RequestServices
                 .GetRequiredService<UserManager<ApplicationUser>>();
 
-            var userId = context.Principal?
-                .FindFirst(ClaimTypes.NameIdentifier)?
-                .Value;
+            var user = await userManager.GetUserAsync(context.Principal!);
 
-            if (userId is null)
+            if (user == null || !user.IsActive)
             {
                 context.Fail("Unauthorized");
                 return;
-            }
-
-            var user = await userManager.FindByIdAsync(userId);
-
-            if (user is null)
-            {
-                context.Fail("Unauthorized");
             }
         },
 

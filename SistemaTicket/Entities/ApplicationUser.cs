@@ -12,6 +12,7 @@ public class ApplicationUser : IdentityUser
     public string Name { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
     public UserRole Role { get; set; }
+    public bool IsActive { get; set; } = true;
     public List<Ticket>? Tickets { get; set; }
 
 

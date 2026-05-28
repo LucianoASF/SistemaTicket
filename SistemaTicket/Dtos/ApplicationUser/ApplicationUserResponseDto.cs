@@ -9,4 +9,5 @@ public class ApplicationUserResponseDto
     public string Email { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
     public UserRole Role { get; set; }
+    public bool IsActive { get; set; }
 }
