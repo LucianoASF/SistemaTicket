@@ -19,8 +19,10 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import type { PagedTickets } from '../types/ticket';
 import { api } from '#lib/axios.ts';
+import { Loading } from '#components/loadings/Loading';
 
 export function Dashboard() {
+  const [loading, setLoading] = useState(true);
   const [data, setData] = useState<PagedTickets>({
     tickets: [],
     total: 0,
@@ -37,9 +39,14 @@ export function Dashboard() {
         '/tickets?withStatusCounts=true',
       );
       setData(response.data);
+      setLoading(false);
     };
     fetchTickets();
   }, []);
+
+  if (loading) {
+    <Loading />;
+  }
 
   const dataCards = [
     {
@@ -51,21 +58,21 @@ export function Dashboard() {
     },
     {
       title: 'Abertos',
-      value: data.statusCounts?.open,
+      value: data.statusCounts.open,
       icon: AlertCircle,
       description: 'Todos os tickets',
       color: 'text-amber-600',
     },
     {
       title: 'Em Progresso',
-      value: data.statusCounts?.inProgress,
+      value: data.statusCounts.inProgress,
       icon: Clock,
       description: 'Sendo resolvidos',
       color: 'text-blue-600',
     },
     {
       title: 'Fechados',
-      value: data.statusCounts?.closed,
+      value: data.statusCounts.closed,
       icon: CheckCircle,
       description: 'Resolvidos',
       color: 'text-emerald-600',
@@ -122,29 +129,41 @@ export function Dashboard() {
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          {data.tickets.map((ticket) => (
-            <Link
-              key={ticket.id}
-              to={`/tickets/${ticket.id}`}
-              className="flex items-center justify-between border border-border rounded-lg p-4 transition-colors hover:bg-muted/50"
-            >
-              <div className="flex-1 min-w-0 ">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Id: {ticket.id}
-                  </span>
-                  <StatusBadge status={ticket.status} />
-                  <PriorityBadge priority={ticket.priority} />
+          {data.tickets.length === 0 ? (
+            <div className="h-24 flex justify-center items-center flex-col text-muted-foreground">
+              <p className="mb-4 font-semibold">Nenhum ticket encontrado. </p>
+              <p>Para Adicionar novos tickets vá para a página tickets</p>
+              <p>Para Adicionar novos usuários vá para a página de usuários</p>
+            </div>
+          ) : (
+            data.tickets.map((ticket) => (
+              <Link
+                key={ticket.id}
+                to={`/tickets/${ticket.id}`}
+                className="flex items-center justify-between border border-border rounded-lg p-4 transition-colors hover:bg-muted/50"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Id: {ticket.id}
+                    </span>
+
+                    <StatusBadge status={ticket.status} />
+                    <PriorityBadge priority={ticket.priority} />
+                  </div>
+
+                  <p className="truncate">{ticket.title}</p>
+
+                  <p className="text-sm text-muted-foreground truncate">
+                    Criado por {ticket.createdByName} •{' '}
+                    {new Date(ticket.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
-                <p className="truncate">{ticket.title}</p>
-                <p className="text-sm text-muted-foreground truncate">
-                  Criado por {ticket.createdByName} •{' '}
-                  {new Date(ticket.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-              <ArrowRight className="m-4 h-4 text-muted-foreground" />
-            </Link>
-          ))}
+
+                <ArrowRight className="m-4 h-4 text-muted-foreground" />
+              </Link>
+            ))
+          )}
         </CardContent>
       </Card>
     </div>
