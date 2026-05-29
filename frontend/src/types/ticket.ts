@@ -23,11 +23,13 @@ export interface Ticket {
   priority: TicketPriority;
   createdAt: Date;
   createdById: string;
-  createdByName?: string;
+  createdByName: string;
 }
 
 export interface PagedTickets {
   tickets: Ticket[];
   total: number;
-  statusCounts?: Record<Uncapitalize<TicketStatus>, number>;
+  statusCounts: StatusCounts;
 }
+
+export type StatusCounts = Record<Uncapitalize<TicketStatus>, number>;

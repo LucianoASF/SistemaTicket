@@ -1,14 +1,22 @@
 import type { UserRole } from './role';
-import type { Ticket } from './ticket';
+import type { StatusCounts, Ticket } from './ticket';
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: UserRole;
-  createdAt?: Date;
-  createdTickets?: Ticket[];
-  assignedTickets?: Ticket[];
+  createdAt: Date;
+}
+
+export interface UserWithTickets {
+  user: User;
+  createdTickets: Ticket[];
+  assignedTickets: Ticket[];
+  createdTicketsStatusCounts: StatusCounts;
+  assignedTicketsStatusCounts: StatusCounts;
+  createdTicketsCount: number;
+  assignedTicketsCount: number;
 }
 
 export interface PagedUsers {
