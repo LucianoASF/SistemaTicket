@@ -30,8 +30,8 @@ import {
   type TicketStatus,
   type PagedTickets,
 } from '../../types/ticket';
-import { Spinner } from '#components/ui/spinner';
 import { UseUpdateParams } from '#hooks/useUpdateParams';
+import { Loading } from '#components/loadings/Loading';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -166,10 +166,7 @@ export function Tickets() {
             {loading ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-24">
-                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                    <Spinner className="size-4" />
-                    <p>Carregando...</p>
-                  </div>
+                  <Loading />
                 </TableCell>
               </TableRow>
             ) : tickets.length === 0 ? (

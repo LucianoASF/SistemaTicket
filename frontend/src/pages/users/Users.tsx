@@ -32,7 +32,7 @@ import {
 import { USER_ROLE, type UserRole } from '../../types/role';
 import { RoleBadge } from '#components/badges/RoleBadge';
 import { UseUpdateParams } from '#hooks/useUpdateParams';
-import { Spinner } from '#components/ui/spinner';
+import { Loading } from '#components/loadings/Loading';
 
 export function Users() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -178,10 +178,7 @@ export function Users() {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="flex items-center text-sm gap-2 text-muted-foreground">
-                  <Spinner className="size-4" />
-                  <p>Carregando...</p>
-                </div>
+                <Loading />
               ) : (
                 <div className="text-3xl font-bold">{data.value}</div>
               )}
@@ -205,10 +202,7 @@ export function Users() {
             {loading ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-24">
-                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                    <Spinner className="size-4" />
-                    <p>Carregando...</p>
-                  </div>
+                  <Loading />
                 </TableCell>
               </TableRow>
             ) : data.users.length === 0 ? (

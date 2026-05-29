@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { useAuth } from '../contexts/useAuth';
 import { type UserRole, USER_ROLE } from '../types/role';
-import { LoaidingAuth } from '#components/LoadingAuth';
+import { LoadingAuth } from '#components/loadings/LoadingAuth';
 
 interface PrivateRouteProps {
   allowedRoles?: UserRole[];
@@ -12,7 +12,7 @@ export function PrivateRoute({ allowedRoles }: PrivateRouteProps) {
   const location = useLocation();
 
   if (loading) {
-    return <LoaidingAuth />;
+    return <LoadingAuth />;
   }
 
   if (!isAuthenticated || !user) {

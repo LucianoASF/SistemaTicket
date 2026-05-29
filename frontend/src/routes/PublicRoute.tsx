@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
-import { LoaidingAuth } from '#components/LoadingAuth';
+import { LoadingAuth } from '#components/loadings/LoadingAuth';
 import { useAuth } from '../contexts/useAuth';
 
 export function PublicRoute() {
@@ -9,7 +9,7 @@ export function PublicRoute() {
   const from = location.state?.from?.pathname || '/dashboard';
 
   if (loading) {
-    return <LoaidingAuth />;
+    return <LoadingAuth />;
   }
 
   if (isAuthenticated) {

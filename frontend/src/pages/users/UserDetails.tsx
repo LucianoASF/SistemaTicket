@@ -21,8 +21,8 @@ import { api } from '#lib/axios.ts';
 import type { UserWithTickets } from '../../types/user';
 import { RoleBadge } from '#components/badges/RoleBadge';
 import { cn } from '#lib/utils.ts';
-import { Spinner } from '#components/ui/spinner';
 import { useAuth } from '../../contexts/useAuth';
+import { Loading } from '#components/loadings/Loading';
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -51,12 +51,7 @@ export function UserDetails() {
   }, [id]);
 
   if (loading) {
-    return (
-      <div className="flex justify-center gap-2 items-center h-full">
-        <Spinner className="size-6 text-primary" />
-        <p className="text-sm text-muted-foreground">Carregando Página...</p>
-      </div>
-    );
+    return <Loading variant="page" />;
   }
 
   if (!data) {
@@ -334,25 +329,6 @@ export function UserDetails() {
               </div>
             </CardContent>
           </Card>
-
-          {/* <Card>
-            <CardHeader>
-              <CardTitle>Resumo de Atividades</CardTitle>
-              <CardDescription>Visão geral dos tickets</CardDescription>
-              <CardContent className="space-y-3 px-0 pt-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-muted-foreground text-sm">Total Criados</p>
-                  <span>{data.createdTicketsCount}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-muted-foreground text-sm">
-                    Total Atribuídos
-                  </p>
-                  <span>{data.assignedTicketsCount}</span>
-                </div>
-              </CardContent>
-            </CardHeader>
-          </Card> */}
         </div>
       </div>
       <ModalUser
