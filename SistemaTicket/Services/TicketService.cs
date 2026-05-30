@@ -122,8 +122,8 @@ public class TicketService : ITicketService
                 TicketId = ticket.Id,
                 OldStatus = ticket.Status,
                 NewStatus = ticketUpdateDto.Status.Value,
-                ChangeAt = DateTimeOffset.UtcNow,
-                ChangeById = userId
+                ChangedAt = DateTimeOffset.UtcNow,
+                ChangedById = userId
             });
         }
 

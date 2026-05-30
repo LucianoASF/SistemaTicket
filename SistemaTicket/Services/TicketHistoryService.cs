@@ -26,8 +26,8 @@ public class TicketHistoryService : ITicketHistoryService
             Id = th.Id,
             OldStatus = th.OldStatus,
             NewStatus = th.NewStatus,
-            ChangeAt = th.ChangeAt,
-            ChangeById = th.ChangeById,
+            ChangedAt = th.ChangedAt,
+            ChangedById = th.ChangedById,
             TicketId = th.TicketId
         }).ToList();
     }
@@ -41,8 +41,8 @@ public class TicketHistoryService : ITicketHistoryService
             Id = ticketHistory.Id,
             OldStatus = ticketHistory.OldStatus,
             NewStatus = ticketHistory.NewStatus,
-            ChangeAt = ticketHistory.ChangeAt,
-            ChangeById = ticketHistory.ChangeById,
+            ChangedAt = ticketHistory.ChangedAt,
+            ChangedById = ticketHistory.ChangedById,
             TicketId = ticketHistory.TicketId
         };
     }
