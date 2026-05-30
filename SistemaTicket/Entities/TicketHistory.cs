@@ -16,7 +16,7 @@ public class TicketHistory
     public int TicketId { get; set; }
     public ApplicationUser? OldAssignedUser { get; set; }
     public ApplicationUser? NewAssignedUser { get; set; }
-    public ApplicationUser ChangeBy { get; set; } = null!;
+    public ApplicationUser ChangedBy { get; set; } = null!;
     public Ticket Ticket { get; set; } = null!;
 
 }

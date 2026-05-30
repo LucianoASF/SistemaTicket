@@ -6,12 +6,8 @@ namespace SistemaTicket.Entities;
 public class Ticket
 {
     public int Id { get; set; }
-
-    [Required]
-    [StringLength(200, MinimumLength = 5)]
+    [MaxLength(200)]
     public string Title { get; set; } = string.Empty;
-
-    [Required]
     public string Description { get; set; } = string.Empty;
     public TicketStatus Status { get; set; }
     public TicketPriority Priority { get; set; }
@@ -19,7 +15,7 @@ public class Ticket
     public string CreatedById { get; set; } = string.Empty;
     public ApplicationUser CreatedBy { get; set; } = null!;
     public string? AssignedToId { get; set; }
-    public ApplicationUser AssignedTo { get; set; } = null!;
-    public List<TicketComment>? TicketComments { get; set; }
-    public List<TicketHistory>? TicketHistory { get; set; }
+    public ApplicationUser? AssignedTo { get; set; }
+    public List<TicketComment> TicketComments { get; set; } = [];
+    public List<TicketHistory> TicketHistories { get; set; } = [];
 }

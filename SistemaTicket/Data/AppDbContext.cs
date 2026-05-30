@@ -36,7 +36,7 @@ public class AppDbContext : IdentityUserContext<ApplicationUser>
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<TicketHistory>()
-            .HasOne(th => th.ChangeBy)
+            .HasOne(th => th.ChangedBy)
             .WithMany()
             .HasForeignKey(th => th.ChangedById)
             .OnDelete(DeleteBehavior.NoAction);
