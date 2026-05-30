@@ -255,10 +255,22 @@ namespace SistemaTicket.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("NewStatus")
+                    b.Property<string>("NewAssignedUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("NewPriority")
                         .HasColumnType("int");
 
-                    b.Property<int>("OldStatus")
+                    b.Property<int?>("NewStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OldAssignedUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("OldPriority")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("OldStatus")
                         .HasColumnType("int");
 
                     b.Property<int>("TicketId")
@@ -267,6 +279,10 @@ namespace SistemaTicket.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ChangedById");
+
+                    b.HasIndex("NewAssignedUserId");
+
+                    b.HasIndex("OldAssignedUserId");
 
                     b.HasIndex("TicketId");
 
@@ -345,6 +361,16 @@ namespace SistemaTicket.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("SistemaTicket.Entities.ApplicationUser", "NewAssignedUser")
+                        .WithMany()
+                        .HasForeignKey("NewAssignedUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SistemaTicket.Entities.ApplicationUser", "OldAssignedUser")
+                        .WithMany()
+                        .HasForeignKey("OldAssignedUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("SistemaTicket.Entities.Ticket", "Ticket")
                         .WithMany("TicketHistories")
                         .HasForeignKey("TicketId")
@@ -352,6 +378,10 @@ namespace SistemaTicket.Migrations
                         .IsRequired();
 
                     b.Navigation("ChangeBy");
+
+                    b.Navigation("NewAssignedUser");
+
+                    b.Navigation("OldAssignedUser");
 
                     b.Navigation("Ticket");
                 });

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SistemaTicket.Migrations
 {
     /// <inheritdoc />
-    public partial class DatabaseCreate : Migration
+    public partial class CreateDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,6 +19,7 @@ namespace SistemaTicket.Migrations
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     Role = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -111,17 +112,22 @@ namespace SistemaTicket.Migrations
                     Status = table.Column<int>(type: "int", nullable: false),
                     Priority = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AssignedToId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tickets", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Tickets_AspNetUsers_AssignedToId",
+                        column: x => x.AssignedToId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
                         name: "FK_Tickets_AspNetUsers_CreatedById",
                         column: x => x.CreatedById,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -157,18 +163,32 @@ namespace SistemaTicket.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    OldStatus = table.Column<int>(type: "int", nullable: false),
-                    NewStatus = table.Column<int>(type: "int", nullable: false),
-                    ChangeAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ChangeById = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    OldStatus = table.Column<int>(type: "int", nullable: true),
+                    NewStatus = table.Column<int>(type: "int", nullable: true),
+                    OldPriority = table.Column<int>(type: "int", nullable: true),
+                    NewPriority = table.Column<int>(type: "int", nullable: true),
+                    OldAssignedUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    NewAssignedUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ChangedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    ChangedById = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     TicketId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TicketHistories", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TicketHistories_AspNetUsers_ChangeById",
-                        column: x => x.ChangeById,
+                        name: "FK_TicketHistories_AspNetUsers_ChangedById",
+                        column: x => x.ChangedById,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_TicketHistories_AspNetUsers_NewAssignedUserId",
+                        column: x => x.NewAssignedUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_TicketHistories_AspNetUsers_OldAssignedUserId",
+                        column: x => x.OldAssignedUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -212,14 +232,29 @@ namespace SistemaTicket.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TicketHistories_ChangeById",
+                name: "IX_TicketHistories_ChangedById",
                 table: "TicketHistories",
-                column: "ChangeById");
+                column: "ChangedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TicketHistories_NewAssignedUserId",
+                table: "TicketHistories",
+                column: "NewAssignedUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TicketHistories_OldAssignedUserId",
+                table: "TicketHistories",
+                column: "OldAssignedUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TicketHistories_TicketId",
                 table: "TicketHistories",
                 column: "TicketId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tickets_AssignedToId",
+                table: "Tickets",
+                column: "AssignedToId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tickets_CreatedById",

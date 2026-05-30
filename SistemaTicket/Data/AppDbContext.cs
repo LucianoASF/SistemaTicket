@@ -24,9 +24,21 @@ public class AppDbContext : IdentityUserContext<ApplicationUser>
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<TicketHistory>()
+            .HasOne(th => th.NewAssignedUser)
+            .WithMany()
+            .HasForeignKey(th => th.NewAssignedUserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<TicketHistory>()
+            .HasOne(th => th.OldAssignedUser)
+            .WithMany()
+            .HasForeignKey(th => th.OldAssignedUserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<TicketHistory>()
             .HasOne(th => th.ChangeBy)
             .WithMany()
-            .HasForeignKey(th => th.ChangeById)
+            .HasForeignKey(th => th.ChangedById)
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Ticket>()

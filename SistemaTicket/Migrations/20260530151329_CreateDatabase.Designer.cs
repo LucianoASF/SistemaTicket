@@ -12,8 +12,8 @@ using SistemaTicket.Data;
 namespace SistemaTicket.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260528081742_AddAssignedTo")]
-    partial class AddAssignedTo
+    [Migration("20260530151329_CreateDatabase")]
+    partial class CreateDatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -113,6 +113,9 @@ namespace SistemaTicket.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
@@ -175,9 +178,6 @@ namespace SistemaTicket.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("AssignedToId")
                         .HasColumnType("nvarchar(450)");
 
@@ -204,8 +204,6 @@ namespace SistemaTicket.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("AssignedToId");
 
@@ -253,17 +251,29 @@ namespace SistemaTicket.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTimeOffset>("ChangeAt")
+                    b.Property<DateTimeOffset>("ChangedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("ChangeById")
+                    b.Property<string>("ChangedById")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("NewStatus")
+                    b.Property<string>("NewAssignedUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("NewPriority")
                         .HasColumnType("int");
 
-                    b.Property<int>("OldStatus")
+                    b.Property<int?>("NewStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OldAssignedUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("OldPriority")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("OldStatus")
                         .HasColumnType("int");
 
                     b.Property<int>("TicketId")
@@ -271,7 +281,11 @@ namespace SistemaTicket.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ChangeById");
+                    b.HasIndex("ChangedById");
+
+                    b.HasIndex("NewAssignedUserId");
+
+                    b.HasIndex("OldAssignedUserId");
 
                     b.HasIndex("TicketId");
 
@@ -307,17 +321,13 @@ namespace SistemaTicket.Migrations
 
             modelBuilder.Entity("SistemaTicket.Entities.Ticket", b =>
                 {
-                    b.HasOne("SistemaTicket.Entities.ApplicationUser", null)
-                        .WithMany("Tickets")
-                        .HasForeignKey("ApplicationUserId");
-
                     b.HasOne("SistemaTicket.Entities.ApplicationUser", "AssignedTo")
-                        .WithMany()
+                        .WithMany("AssignedTickets")
                         .HasForeignKey("AssignedToId")
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("SistemaTicket.Entities.ApplicationUser", "CreatedBy")
-                        .WithMany()
+                        .WithMany("CreatedTickets")
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
@@ -350,31 +360,47 @@ namespace SistemaTicket.Migrations
                 {
                     b.HasOne("SistemaTicket.Entities.ApplicationUser", "ChangeBy")
                         .WithMany()
-                        .HasForeignKey("ChangeById")
+                        .HasForeignKey("ChangedById")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("SistemaTicket.Entities.ApplicationUser", "NewAssignedUser")
+                        .WithMany()
+                        .HasForeignKey("NewAssignedUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SistemaTicket.Entities.ApplicationUser", "OldAssignedUser")
+                        .WithMany()
+                        .HasForeignKey("OldAssignedUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("SistemaTicket.Entities.Ticket", "Ticket")
-                        .WithMany("TicketHistory")
+                        .WithMany("TicketHistories")
                         .HasForeignKey("TicketId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("ChangeBy");
 
+                    b.Navigation("NewAssignedUser");
+
+                    b.Navigation("OldAssignedUser");
+
                     b.Navigation("Ticket");
                 });
 
             modelBuilder.Entity("SistemaTicket.Entities.ApplicationUser", b =>
                 {
-                    b.Navigation("Tickets");
+                    b.Navigation("AssignedTickets");
+
+                    b.Navigation("CreatedTickets");
                 });
 
             modelBuilder.Entity("SistemaTicket.Entities.Ticket", b =>
                 {
                     b.Navigation("TicketComments");
 
-                    b.Navigation("TicketHistory");
+                    b.Navigation("TicketHistories");
                 });
 #pragma warning restore 612, 618
         }
