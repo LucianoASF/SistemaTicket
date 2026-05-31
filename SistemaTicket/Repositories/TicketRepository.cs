@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SistemaTicket.Data;
 using SistemaTicket.Dtos.Ticket;
+using SistemaTicket.Dtos.TicketComment;
+using SistemaTicket.Dtos.TicketHistory;
 using SistemaTicket.Entities;
 using SistemaTicket.Enums;
 namespace SistemaTicket.Repositories;
@@ -76,7 +78,10 @@ public class TicketRepository : ITicketRepository
 
     public async Task<Ticket?> GetByIdAsync(int id)
     {
-        return await _context.Tickets.FirstOrDefaultAsync(t => t.Id == id);
+        return await _context.Tickets
+            .Include(t => t.CreatedBy)
+            .Include(t => t.AssignedTo)
+            .FirstOrDefaultAsync(t => t.Id == id);
     }
 
     public async Task SaveAsync()

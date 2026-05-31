@@ -6,6 +6,7 @@ public class TicketCommentResponseDto
     public string Message { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
     public string UserId { get; set; } = string.Empty;
+    public string UserName { get; set; } = string.Empty;
     public int TicketId { get; set; }
 
 }
