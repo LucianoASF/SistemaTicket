@@ -19,7 +19,7 @@ public class TicketService : ITicketService
 
     public async Task<TicketResponseDto> CreateAsync(TicketCreateDto ticketCreateDto, string userId, bool isUser)
     {
-        if (isUser)
+        if (isUser || !ticketCreateDto.Priority.HasValue)
         {
             ticketCreateDto.Priority = TicketPriority.Low;
         }
@@ -29,7 +29,7 @@ public class TicketService : ITicketService
             Title = ticketCreateDto.Title,
             Description = ticketCreateDto.Description,
             Status = TicketStatus.Open,
-            Priority = VerifyPriority(ticketCreateDto.Priority),
+            Priority = ticketCreateDto.Priority.Value,
             CreatedAt = DateTimeOffset.UtcNow,
             CreatedById = userId
         };
@@ -82,23 +82,6 @@ public class TicketService : ITicketService
         };
     }
 
-    public async Task<TicketResponseDto> GetByIdAsync(int id, string userId, bool isUser)
-    {
-        var ticket = await GetTicketOrThrowAsync(id, userId, isUser);
-
-        return new TicketResponseDto
-        {
-            Id = ticket.Id,
-            Title = ticket.Title,
-            Description = ticket.Description,
-            Status = ticket.Status,
-            Priority = ticket.Priority,
-            CreatedAt = ticket.CreatedAt,
-            CreatedById = ticket.CreatedById,
-            CreatedByName = ticket.CreatedBy.Name
-        };
-    }
-
     public async Task<TicketResponseDto> UpdateAsync(int id, string userId, bool isUser, TicketUpdateDto ticketUpdateDto)
     {
         var ticket = await GetTicketOrThrowAsync(id, userId, isUser);
@@ -115,23 +98,42 @@ public class TicketService : ITicketService
             }
         }
 
+        TicketHistory ticketHistory = new()
+        {
+            TicketId = ticket.Id,
+            ChangedAt = DateTimeOffset.UtcNow,
+            ChangedById = userId
+        };
+        bool hasChanges = false;
+
         if (ticketUpdateDto.Status.HasValue && ticketUpdateDto.Status != ticket.Status)
         {
-            await _ticketHistoryRepository.CreateAsync(new TicketHistory
-            {
-                TicketId = ticket.Id,
-                OldStatus = ticket.Status,
-                NewStatus = ticketUpdateDto.Status.Value,
-                ChangedAt = DateTimeOffset.UtcNow,
-                ChangedById = userId
-            });
+            ticketHistory.OldStatus = ticket.Status;
+            ticketHistory.NewStatus = ticketUpdateDto.Status.Value;
+            hasChanges = true;
+        }
+        if (ticketUpdateDto.Priority.HasValue && ticketUpdateDto.Priority != ticket.Priority)
+        {
+            ticketHistory.OldPriority = ticket.Priority;
+            ticketHistory.NewPriority = ticketUpdateDto.Priority.Value;
+            hasChanges = true;
+        }
+        if (ticketUpdateDto.AssignedUserId != null && ticketUpdateDto.AssignedUserId != ticket.AssignedToId && ticket.AssignedToId != null)
+        {
+            ticketHistory.OldAssignedUserId = ticket.AssignedToId;
+            ticketHistory.NewAssignedUserId = ticketUpdateDto.AssignedUserId;
+            hasChanges = true;
+        }
+        if (hasChanges)
+        {
+            await _ticketHistoryRepository.CreateAsync(ticketHistory);
         }
 
         ticket.Title = ticketUpdateDto.Title;
         ticket.Description = ticketUpdateDto.Description;
-        ticket.Priority = VerifyPriority(ticketUpdateDto.Priority);
-        ticket.Status = VerifyStatus(ticketUpdateDto.Status);
-
+        ticket.Priority = ticketUpdateDto.Priority ?? ticket.Priority;
+        ticket.Status = ticketUpdateDto.Status ?? ticket.Status;
+        ticket.AssignedToId = ticketUpdateDto.AssignedUserId ?? ticket.AssignedToId;
 
         await _ticketRepository.SaveAsync();
 
@@ -144,8 +146,9 @@ public class TicketService : ITicketService
             Priority = ticket.Priority,
             CreatedAt = ticket.CreatedAt,
             CreatedById = ticket.CreatedById,
-            CreatedByName = ticket.CreatedBy.Name
-
+            CreatedByName = ticket.CreatedBy.Name,
+            AssignedToId = ticket.AssignedToId,
+            AssignedToName = ticket.AssignedTo?.Name
         };
     }
     public async Task DeleteAsync(int id, string userId, bool isUser)
@@ -153,6 +156,23 @@ public class TicketService : ITicketService
         var ticket = await GetTicketOrThrowAsync(id, userId, isUser);
         _ticketRepository.Delete(ticket);
         await _ticketRepository.SaveAsync();
+    }
+
+    public async Task<TicketDetailsResponseDto> GetDetailsByIdAsync(int id, string userId, bool isUser)
+    {
+
+        var ticketDetails = await _ticketRepository.GetDetailsByIdAsync(id);
+
+        if (ticketDetails == null)
+        {
+            throw new NotFoundException("ticket not found");
+        }
+        if (ticketDetails.Ticket.CreatedById != userId && isUser)
+        {
+            throw new ForbiddenException("you are not authorized to access this ticket");
+        }
+
+        return ticketDetails;
     }
 
     private async Task<Ticket> GetTicketOrThrowAsync(int id, string userId, bool isUser)
@@ -167,22 +187,5 @@ public class TicketService : ITicketService
             throw new ForbiddenException("you are not authorized to access this ticket");
         }
         return ticket;
-    }
-
-    private TicketPriority VerifyPriority(TicketPriority? priority)
-    {
-        if (!priority.HasValue || !Enum.IsDefined(priority.Value))
-        {
-            throw new BadRequestException(new Dictionary<string, string[]>() { { "priority", ["that priority does not exist"] } });
-        }
-        return priority.Value;
-    }
-    private TicketStatus VerifyStatus(TicketStatus? status)
-    {
-        if (!status.HasValue || !Enum.IsDefined(status.Value))
-        {
-            throw new BadRequestException(new Dictionary<string, string[]>() { { "status", ["that status does not exist"] } });
-        }
-        return status.Value;
     }
 }

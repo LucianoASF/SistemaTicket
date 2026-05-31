@@ -29,7 +29,7 @@ public class TicketController : ControllerBase
         }
         var isUser = User.IsInRole(nameof(UserRole.User));
         var result = await _ticketService.CreateAsync(dto, userId, isUser);
-        return CreatedAtAction("GetById", new { id = result.Id }, result);
+        return CreatedAtAction("GetDetailsById", new { id = result.Id }, result);
     }
 
     [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Support)}")]
@@ -42,7 +42,7 @@ public class TicketController : ControllerBase
 
     [Authorize]
     [HttpGet("{id}")]
-    public async Task<ActionResult<TicketResponseDto>> GetByIdAsync(int id)
+    public async Task<ActionResult<TicketDetailsResponseDto>> GetDetailsByIdAsync(int id)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null)
@@ -50,7 +50,7 @@ public class TicketController : ControllerBase
             return Unauthorized();
         }
         var isUser = User.IsInRole(nameof(UserRole.User));
-        return Ok(await _ticketService.GetByIdAsync(id, userId, isUser));
+        return Ok(await _ticketService.GetDetailsByIdAsync(id, userId, isUser));
     }
 
     [Authorize]
@@ -77,6 +77,5 @@ public class TicketController : ControllerBase
         await _ticketService.DeleteAsync(id, userId, false);
         return NoContent();
     }
-
 }
 

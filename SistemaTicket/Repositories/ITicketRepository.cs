@@ -12,4 +12,5 @@ public interface ITicketRepository
         (int page, string? searchQuery, TicketStatus? status, TicketPriority? priority, bool? withStatusCounts);
     Task SaveAsync();
     void Delete(Ticket ticket);
+    Task<TicketDetailsResponseDto?> GetDetailsByIdAsync(int id);
 }

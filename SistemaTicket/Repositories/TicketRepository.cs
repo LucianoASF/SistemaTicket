@@ -93,4 +93,57 @@ public class TicketRepository : ITicketRepository
         _context.Tickets.Remove(ticket);
     }
 
+    public async Task<TicketDetailsResponseDto?> GetDetailsByIdAsync(int id)
+    {
+        var ticketDetails = await _context.Tickets.AsNoTracking()
+            .Where(t => t.Id == id)
+            .Select(t => new TicketDetailsResponseDto
+            {
+                Ticket = new TicketResponseDto
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Description = t.Description,
+                    Status = t.Status,
+                    Priority = t.Priority,
+                    CreatedAt = t.CreatedAt,
+                    CreatedById = t.CreatedById,
+                    CreatedByName = t.CreatedBy.Name,
+                    AssignedToId = t.AssignedToId,
+                    AssignedToName = t.AssignedTo != null ? t.AssignedTo.Name : null
+                },
+                TicketComments = t.TicketComments.Select(tc => new TicketCommentResponseDto
+                {
+                    Id = tc.Id,
+                    Message = tc.Message,
+                    CreatedAt = tc.CreatedAt,
+                    TicketId = tc.TicketId,
+                    UserId = tc.UserId,
+                    UserName = tc.User.Name
+                })
+                .OrderByDescending(tc => tc.CreatedAt)
+                .ToList(),
+                TicketHistories = t.TicketHistories.Select(th => new TicketHistoryResponseDto
+                {
+                    Id = th.Id,
+                    OldStatus = th.OldStatus,
+                    NewStatus = th.NewStatus,
+                    OldPriority = th.OldPriority,
+                    NewPriority = th.NewPriority,
+                    OldAssignedUserId = th.OldAssignedUserId,
+                    NewAssignedUserId = th.NewAssignedUserId,
+                    OldAssignedUserName = th.OldAssignedUser != null ? th.OldAssignedUser.Name : null,
+                    NewAssignedUserName = th.NewAssignedUser != null ? th.NewAssignedUser.Name : null,
+                    ChangedAt = th.ChangedAt,
+                    ChangedById = th.ChangedById,
+                    ChangedByName = th.ChangedBy.Name,
+                    TicketId = th.TicketId
+                })
+                .OrderByDescending(th => th.ChangedAt)
+                .ToList(),
+            })
+            .FirstOrDefaultAsync();
+
+        return ticketDetails;
+    }
 }

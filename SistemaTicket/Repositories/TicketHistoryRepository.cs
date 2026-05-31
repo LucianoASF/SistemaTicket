@@ -24,7 +24,7 @@ public class TicketHistoryRepository : ITicketHistoryRepository
         return await _context.TicketHistories
             .AsNoTracking()
             .Where(th => th.TicketId == ticketId)
-            .OrderByDescending(th => th.ChangeAt)
+            .OrderByDescending(th => th.ChangedAt)
             .Skip((page - 1) * 5)
             .Take(5)
             .ToListAsync();
