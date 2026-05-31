@@ -1,3 +1,6 @@
+import type { TicketComment } from './TicketComment';
+import type { TicketHistory } from './ticketHistory';
+
 export const TICKET_STATUS = {
   OPEN: 'Open',
   INPROGRESS: 'InProgress',
@@ -21,9 +24,11 @@ export interface Ticket {
   description: string;
   status: TicketStatus;
   priority: TicketPriority;
-  createdAt: Date;
+  createdAt: string;
   createdById: string;
   createdByName: string;
+  assignedToId?: string;
+  assignedToName?: string;
 }
 
 export interface PagedTickets {
@@ -33,3 +38,9 @@ export interface PagedTickets {
 }
 
 export type StatusCounts = Record<Uncapitalize<TicketStatus>, number>;
+
+export interface TicketDetails {
+  ticket: Ticket;
+  ticketComments: TicketComment[];
+  ticketHistories: TicketHistory[];
+}

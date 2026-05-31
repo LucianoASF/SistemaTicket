@@ -8,8 +8,7 @@ import {
   Send,
 } from 'lucide-react';
 import { Link, useParams } from 'react-router';
-import { tickets as inicitialTickets } from '#lib/mock';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs';
 import { Separator } from '#components/ui/separator';
@@ -18,6 +17,12 @@ import { ModalTicket } from '#components/ModalTicket';
 import { CustomAvatar } from '#components/CustomAvatar';
 import { StatusBadge } from '#components/badges/StatusBadge';
 import { PriorityBadge } from '#components/badges/PriorityBadge';
+import { api } from '#lib/axios.ts';
+import {
+  TICKET_PRIORITY,
+  TICKET_STATUS,
+  type TicketDetails,
+} from '../../types/ticket';
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -29,14 +34,31 @@ function formatDate(dateString: string) {
   });
 }
 
+const priorityConfig = {
+  [TICKET_PRIORITY.LOW]: 'baixa',
+  [TICKET_PRIORITY.MEDIUM]: 'média',
+  [TICKET_PRIORITY.HIGH]: 'alta',
+};
+const statusConfig = {
+  [TICKET_STATUS.OPEN]: 'aberto',
+  [TICKET_STATUS.INPROGRESS]: 'em progresso',
+  [TICKET_STATUS.CLOSED]: 'fechado',
+};
+
 export function TicketDetails() {
   const { id } = useParams();
-  const [ticket, setTicket] = useState(
-    inicitialTickets.find((it) => it.id === id),
-  );
+  const [ticketDetails, setTicketDetails] = useState<TicketDetails>();
   const [isModelOpen, setIsModelOpen] = useState(false);
 
-  if (!ticket) {
+  useEffect(() => {
+    const fetchTicket = async () => {
+      const response = await api.get<TicketDetails>(`/tickets/${id}`);
+      setTicketDetails(response.data);
+    };
+    fetchTicket();
+  }, [id]);
+
+  if (!ticketDetails) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <h1 className="text-2xl font-bold text-foreground">
@@ -63,12 +85,12 @@ export function TicketDetails() {
           <div className="space-y-1">
             <div className="flex gap-2">
               <span className="text-sm text-muted-foreground">
-                Id: {ticket.id}
+                Id: {ticketDetails.ticket.id}
               </span>
-              <StatusBadge status={ticket.status} />
-              <PriorityBadge priority={ticket.priority} />
+              <StatusBadge status={ticketDetails.ticket.status} />
+              <PriorityBadge priority={ticketDetails.ticket.priority} />
             </div>
-            <h1 className="text-2xl font-bold">{ticket.title}</h1>
+            <h1 className="text-2xl font-bold">{ticketDetails.ticket.title}</h1>
           </div>
         </div>
         <Button variant="outline" onClick={() => setIsModelOpen(true)}>
@@ -83,7 +105,7 @@ export function TicketDetails() {
               <CardTitle>Descrição</CardTitle>
             </CardHeader>
             <CardContent className="whitespace-pre-wrap">
-              {ticket.description}
+              {ticketDetails.ticket.description}
             </CardContent>
           </Card>
           <Card>
@@ -92,33 +114,33 @@ export function TicketDetails() {
                 <TabsList>
                   <TabsTrigger value="comments">
                     <MessageSquare className="h-4 w-4" />
-                    Comentários ({ticket.comments.length})
+                    Comentários ({ticketDetails.ticketComments.length})
                   </TabsTrigger>
-                  <TabsTrigger value="activity">
+                  <TabsTrigger value="histories">
                     <History className="h-4 w-4" />
-                    Atividades ({ticket.activities.length})
+                    Histórico ({ticketDetails.ticketHistories.length})
                   </TabsTrigger>
                 </TabsList>
               </CardHeader>
               <CardContent>
                 <TabsContent value="comments" className="space-y-4">
-                  {ticket.comments.length == 0 ? (
+                  {ticketDetails.ticketComments.length == 0 ? (
                     <p className="text-muted-foreground text-center py-8">
                       Nenhum comentário ainda. Seja o primeiro a comentar!
                     </p>
                   ) : (
                     <div className="space-y-2 mt-4">
-                      {ticket.comments.map((c) => (
+                      {ticketDetails.ticketComments.map((c) => (
                         <div key={c.id}>
                           <div className="flex items-center gap-2">
-                            <CustomAvatar name={c.author.name} />
-                            <span className="font-medium">{c.author.name}</span>
+                            <CustomAvatar name={c.userName} />
+                            <span className="font-medium">{c.userName}</span>
                             <span className="text-muted-foreground text-xs">
                               {formatDate(c.createdAt)}
                             </span>
                           </div>
                           <div className="py-1 px-9">
-                            <p>{c.content}</p>
+                            <p className="font-light">{c.message}</p>
                           </div>
                         </div>
                       ))}
@@ -133,25 +155,63 @@ export function TicketDetails() {
                     </Button>
                   </div>
                 </TabsContent>
-                <TabsContent value="activity" className="space-y-7">
-                  {ticket.activities.map((a, index) => (
-                    <div key={a.id} className="flex gap-2 mt-4">
-                      <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        {index < ticket.activities.length - 1 && (
-                          <div className="absolute top-9 h-full border border-border" />
+                <TabsContent value="histories" className="space-y-7 mt-4">
+                  {ticketDetails.ticketHistories.map((th, index) => (
+                    <div key={th.id} className="flex gap-2">
+                      <div className="relative flex w-8 justify-center">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted z-10">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                        </div>
+
+                        {index < ticketDetails.ticketHistories.length - 1 && (
+                          <div className="absolute top-8 -bottom-7 w-px bg-border" />
                         )}
                       </div>
-                      <div className="space-x-1">
-                        <span className="font-medium">{a.author.name}</span>
-                        <span className="text-muted-foreground">
-                          {a.action}
+                      <div className="space-y-1">
+                        <span className="font-medium block">
+                          {th.changedByName}
                         </span>
-                        {a.details && (
-                          <span className="font-medium">{a.details}</span>
-                        )}
+                        <div className="text-muted-foreground text-sm flex flex-col">
+                          {th.oldAssignedUserName && th.newAssignedUserName && (
+                            <span>
+                              Atribuição alterada de {th.oldAssignedUserName}{' '}
+                              para {th.newAssignedUserName}
+                            </span>
+                          )}
+
+                          {th.oldAssignedUserName &&
+                            !th.newAssignedUserName && (
+                              <span>
+                                O(A) {th.newAssignedUserName} não esta mais
+                                atribuído no ticket
+                              </span>
+                            )}
+
+                          {!th.oldAssignedUserName &&
+                            th.newAssignedUserName && (
+                              <span>
+                                O(A) {th.newAssignedUserName} esta atribuído no
+                                ticket
+                              </span>
+                            )}
+
+                          {th.oldStatus && th.newStatus && (
+                            <span>
+                              Status alterado de {statusConfig[th.oldStatus]}{' '}
+                              para {statusConfig[th.newStatus]}
+                            </span>
+                          )}
+
+                          {th.oldPriority && th.newPriority && (
+                            <span>
+                              Prioridade alterada de{' '}
+                              {priorityConfig[th.oldPriority]} para{' '}
+                              {priorityConfig[th.newPriority]}
+                            </span>
+                          )}
+                        </div>
                         <span className="block text-xs text-muted-foreground">
-                          {formatDate(a.createdAt)}
+                          {formatDate(th.changedAt)}
                         </span>
                       </div>
                     </div>
@@ -172,14 +232,14 @@ export function TicketDetails() {
                   <span className="text-muted-foreground text-sm font-medium">
                     Status
                   </span>
-                  <StatusBadge status={ticket.status} />
+                  <StatusBadge status={ticketDetails.ticket.status} />
                 </div>
                 <Separator />
                 <div className="flex flex-col gap-1">
                   <span className="text-muted-foreground text-sm font-medium">
                     Prioridade
                   </span>
-                  <PriorityBadge priority={ticket.priority} />
+                  <PriorityBadge priority={ticketDetails.ticket.priority} />
                 </div>
                 <Separator />
                 <div className="flex flex-col gap-1">
@@ -187,19 +247,26 @@ export function TicketDetails() {
                     Criado por
                   </span>
                   <div className="flex items-center gap-2">
-                    <CustomAvatar name={ticket.author.name} />
-                    <span className="text-sm">{ticket.author.name}</span>
+                    <CustomAvatar name={ticketDetails.ticket.createdByName} />
+                    <span className="text-sm">
+                      {ticketDetails.ticket.createdByName}
+                    </span>
                   </div>
                 </div>
                 <Separator />
-                {ticket.assignee && (
+                {ticketDetails.ticket.assignedToName && (
                   <div className="flex flex-col gap-1">
                     <span className="text-muted-foreground text-sm font-medium">
                       Atribuido para
                     </span>
                     <div className="flex items-center gap-2">
-                      <CustomAvatar name={ticket.assignee.name} secondary />
-                      <span className="text-sm">{ticket.assignee.name}</span>
+                      <CustomAvatar
+                        name={ticketDetails.ticket.assignedToName}
+                        secondary
+                      />
+                      <span className="text-sm">
+                        {ticketDetails.ticket.assignedToName}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -209,7 +276,7 @@ export function TicketDetails() {
                     Criado em
                   </span>
                   <span className="text-sm">
-                    {formatDate(ticket.createdAt)}
+                    {formatDate(ticketDetails.ticket.createdAt)}
                   </span>
                 </div>
                 <Separator />
@@ -217,9 +284,11 @@ export function TicketDetails() {
                   <span className="text-muted-foreground text-sm font-medium">
                     Atualizado em
                   </span>
-                  <span className="text-sm">
-                    {formatDate(ticket.updatedAt)}
-                  </span>
+                  {ticketDetails.ticketHistories.length > 0 && (
+                    <span className="text-sm">
+                      {formatDate(ticketDetails.ticketHistories[0].changedAt)}
+                    </span>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -229,7 +298,7 @@ export function TicketDetails() {
       <ModalTicket
         open={isModelOpen}
         onOpenChange={setIsModelOpen}
-        ticket={ticket}
+        ticket={ticketDetails.ticket}
       />
     </div>
   );
