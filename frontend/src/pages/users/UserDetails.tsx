@@ -20,19 +20,9 @@ import { ModalUser } from '#components/ModalUser';
 import { api } from '#lib/axios.ts';
 import type { UserWithTickets } from '../../types/user';
 import { RoleBadge } from '#components/badges/RoleBadge';
-import { cn } from '#lib/utils.ts';
+import { cn, formatDate } from '#lib/utils.ts';
 import { useAuth } from '../../contexts/useAuth';
 import { Loading } from '#components/loadings/Loading';
-
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
 
 export function UserDetails() {
   const { user } = useAuth();
@@ -220,7 +210,7 @@ export function UserDetails() {
                                 <PriorityBadge priority={ticket.priority} />
                               </TableCell>
                               <TableCell className="text-muted-foreground text-sm">
-                                {formatDate(ticket.createdAt.toString())}
+                                {formatDate(ticket.createdAt)}
                               </TableCell>
                             </TableRow>
                           ))}

@@ -23,16 +23,7 @@ import {
   TICKET_STATUS,
   type TicketDetails,
 } from '../../types/ticket';
-
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
+import { formatDate } from '#lib/utils.ts';
 
 const priorityConfig = {
   [TICKET_PRIORITY.LOW]: 'baixa',
