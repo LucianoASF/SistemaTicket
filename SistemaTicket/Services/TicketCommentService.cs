@@ -32,7 +32,8 @@ public class TicketCommentService : ITicketCommentService
             Message = response.Message,
             CreatedAt = response.CreatedAt,
             UserId = response.UserId,
-            TicketId = response.TicketId
+            TicketId = response.TicketId,
+            UserName = response.User.Name
         };
     }
 

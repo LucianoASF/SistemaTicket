@@ -24,6 +24,10 @@ import {
   type TicketDetails,
 } from '../../types/ticket';
 import { formatDate } from '#lib/utils.ts';
+import type { TicketComment } from '../../types/TicketComment';
+import { Spinner } from '#components/ui/spinner';
+import { FieldError } from '#components/ui/field';
+import { toast } from 'sonner';
 
 const priorityConfig = {
   [TICKET_PRIORITY.LOW]: 'baixa',
@@ -40,6 +44,9 @@ export function TicketDetails() {
   const { id } = useParams();
   const [ticketDetails, setTicketDetails] = useState<TicketDetails>();
   const [isModelOpen, setIsModelOpen] = useState(false);
+  const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState('');
 
   useEffect(() => {
     const fetchTicket = async () => {
@@ -48,6 +55,39 @@ export function TicketDetails() {
     };
     fetchTicket();
   }, [id]);
+
+  async function createComment() {
+    if (isSubmitting) return;
+    try {
+      setIsSubmitting(true);
+      setErrors('');
+      if (message.trim().length < 10) {
+        setErrors('O comentário não pode ter menos de 10 caracteres');
+        return;
+      }
+      const response = await api.post<TicketComment>(
+        `/tickets/${id}/ticket-comments`,
+        { message },
+      );
+      setTicketDetails((ticket) =>
+        ticket
+          ? {
+              ...ticket,
+              ticketComments: [response.data, ...ticket.ticketComments],
+            }
+          : ticket,
+      );
+      setMessage('');
+      document.getElementById('tabs')?.scrollIntoView({ behavior: 'smooth' });
+      toast.success('Comentário adicionado com sucesso', {
+        position: 'top-right',
+      });
+    } catch {
+      return;
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   if (!ticketDetails) {
     return (
@@ -100,7 +140,7 @@ export function TicketDetails() {
             </CardContent>
           </Card>
           <Card>
-            <Tabs defaultValue="comments">
+            <Tabs defaultValue="comments" id="tabs">
               <CardHeader>
                 <TabsList>
                   <TabsTrigger value="comments">
@@ -139,10 +179,30 @@ export function TicketDetails() {
                   )}
 
                   <Separator />
-                  <Textarea placeholder="Escreva um comentário..." rows={3} />
+                  <Textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Escreva um comentário..."
+                    required
+                    rows={3}
+                  />
+                  {!!errors && <FieldError>{errors}</FieldError>}
                   <div className="text-end">
-                    <Button>
-                      <Send className="mr-2 h-4 w-4" /> Enviar comentário
+                    <Button
+                      onClick={createComment}
+                      disabled={isSubmitting || !message.trim()}
+                    >
+                      {!isSubmitting ? (
+                        <>
+                          <Send className="mr-2 h-4 w-4" />{' '}
+                          <span>Enviar comentário</span>
+                        </>
+                      ) : (
+                        <>
+                          <Spinner className="mr-2 h-4 w-4" />{' '}
+                          <span>Enviando comentário</span>
+                        </>
+                      )}
                     </Button>
                   </div>
                 </TabsContent>
