@@ -32,6 +32,7 @@ import { toast } from 'sonner';
 import { ModalDelete } from '#components/modals/ModalDelete';
 import { useAuth } from '../../contexts/useAuth';
 import { USER_ROLE } from '../../types/role';
+import { Loading } from '#components/loadings/Loading';
 
 const priorityConfig = {
   [TICKET_PRIORITY.LOW]: 'baixa',
@@ -54,11 +55,13 @@ export function TicketDetails() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState('');
   const [ticketCommentId, setTicketCommentId] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchTicket = async () => {
       const response = await api.get<TicketDetails>(`/tickets/${id}`);
       setTicketDetails(response.data);
+      setLoading(false);
     };
     fetchTicket();
   }, [id]);
@@ -111,6 +114,10 @@ export function TicketDetails() {
     toast.success('Comentário excluido com sucesso!', {
       position: 'top-right',
     });
+  }
+
+  if (loading) {
+    return <Loading variant="page" />;
   }
 
   if (!ticketDetails) {
@@ -208,7 +215,7 @@ export function TicketDetails() {
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="mr-2 hover:text-red-600"
+                                className="mr-2 hover:text-destructive"
                                 onClick={() => {
                                   setTicketCommentId(c.id);
                                   setIsModelDeleteOpen(true);
