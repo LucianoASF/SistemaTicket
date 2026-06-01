@@ -1,9 +1,10 @@
 import { cn } from '#lib/utils';
 import { LayoutDashboard, LogOut, Ticket, Users } from 'lucide-react';
 
-import { Link, NavLink } from 'react-router';
+import { NavLink } from 'react-router';
 import { CustomAvatar } from './CustomAvatar';
 import { useAuth } from '../contexts/useAuth';
+import { Button } from './ui/button';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -59,13 +60,14 @@ export function AppSidebar() {
               {user?.email}
             </p>
           </div>
-          <Link
-            to="/login"
-            className="rounded-lg p-1.5 text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-destructive"
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-destructive"
             onClick={logout}
           >
-            <LogOut className="h-4 w-4" />
-          </Link>
+            <LogOut className="size-4" />
+          </Button>
         </div>
       </div>
     </aside>
