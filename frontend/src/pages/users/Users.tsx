@@ -19,7 +19,7 @@ import {
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { CustomAvatar } from '#components/CustomAvatar';
-import { ModalUser } from '#components/ModalUser';
+import { ModalUser } from '#components/modals/ModalUser';
 import { api } from '#lib/axios.ts';
 import type { PagedUsers } from '../../types/user';
 import {

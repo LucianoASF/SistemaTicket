@@ -1,6 +1,6 @@
 import { PriorityBadge } from '#components/badges/PriorityBadge';
 import { StatusBadge } from '#components/badges/StatusBadge';
-import { ModalTicket } from '#components/ModalTicket';
+import { ModalTicket } from '#components/modals/ModalTicket';
 import { Button } from '#components/ui/button';
 import { Input } from '#components/ui/input';
 import {

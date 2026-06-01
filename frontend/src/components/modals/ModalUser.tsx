@@ -1,5 +1,5 @@
 import { EyeOff, Eye } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from '../ui/button';
 import {
   Dialog,
   DialogContent,
@@ -7,16 +7,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from './ui/dialog';
-import { Field, FieldGroup, FieldLabel } from './ui/field';
-import { Input } from './ui/input';
+} from '../ui/dialog';
+import { Field, FieldGroup, FieldLabel } from '../ui/field';
+import { Input } from '../ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from './ui/select';
+} from '../ui/select';
 import { useState } from 'react';
 
 interface ModalUserProps {

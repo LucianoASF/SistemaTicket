@@ -16,7 +16,7 @@ import {
 import { StatusBadge } from '#components/badges/StatusBadge';
 import { PriorityBadge } from '#components/badges/PriorityBadge';
 import { Separator } from '#components/ui/separator';
-import { ModalUser } from '#components/ModalUser';
+import { ModalUser } from '#components/modals/ModalUser';
 import { api } from '#lib/axios.ts';
 import type { UserWithTickets } from '../../types/user';
 import { RoleBadge } from '#components/badges/RoleBadge';

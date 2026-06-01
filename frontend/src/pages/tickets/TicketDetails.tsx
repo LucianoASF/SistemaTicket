@@ -6,6 +6,7 @@ import {
   History,
   MessageSquare,
   Send,
+  Trash2,
 } from 'lucide-react';
 import { Link, useParams } from 'react-router';
 import { useEffect, useState } from 'react';
@@ -13,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs';
 import { Separator } from '#components/ui/separator';
 import { Textarea } from '#components/ui/textarea';
-import { ModalTicket } from '#components/ModalTicket';
+import { ModalTicket } from '#components/modals/ModalTicket';
 import { CustomAvatar } from '#components/CustomAvatar';
 import { StatusBadge } from '#components/badges/StatusBadge';
 import { PriorityBadge } from '#components/badges/PriorityBadge';
@@ -28,6 +29,9 @@ import type { TicketComment } from '../../types/TicketComment';
 import { Spinner } from '#components/ui/spinner';
 import { FieldError } from '#components/ui/field';
 import { toast } from 'sonner';
+import { ModalDelete } from '#components/modals/ModalDelete';
+import { useAuth } from '../../contexts/useAuth';
+import { USER_ROLE } from '../../types/role';
 
 const priorityConfig = {
   [TICKET_PRIORITY.LOW]: 'baixa',
@@ -41,12 +45,15 @@ const statusConfig = {
 };
 
 export function TicketDetails() {
+  const { user } = useAuth();
   const { id } = useParams();
   const [ticketDetails, setTicketDetails] = useState<TicketDetails>();
-  const [isModelOpen, setIsModelOpen] = useState(false);
+  const [isModelEditOpen, setIsModelEditOpen] = useState(false);
+  const [isModelDeleteOpen, setIsModelDeleteOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState('');
+  const [ticketCommentId, setTicketCommentId] = useState(0);
 
   useEffect(() => {
     const fetchTicket = async () => {
@@ -89,6 +96,23 @@ export function TicketDetails() {
     }
   }
 
+  async function deleteComment() {
+    await api.delete(`/tickets/${id}/ticket-comments/${ticketCommentId}`);
+    setTicketDetails((ticket) =>
+      ticket
+        ? {
+            ...ticket,
+            ticketComments: ticket.ticketComments.filter(
+              (comment) => comment.id !== ticketCommentId,
+            ),
+          }
+        : ticket,
+    );
+    toast.success('Comentário excluido com sucesso!', {
+      position: 'top-right',
+    });
+  }
+
   if (!ticketDetails) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
@@ -124,7 +148,7 @@ export function TicketDetails() {
             <h1 className="text-2xl font-bold">{ticketDetails.ticket.title}</h1>
           </div>
         </div>
-        <Button variant="outline" onClick={() => setIsModelOpen(true)}>
+        <Button variant="outline" onClick={() => setIsModelEditOpen(true)}>
           <Edit className="h-4 w-4 mr-2" />
           Editar
         </Button>
@@ -162,17 +186,37 @@ export function TicketDetails() {
                   ) : (
                     <div className="space-y-2 mt-4">
                       {ticketDetails.ticketComments.map((c) => (
-                        <div key={c.id}>
-                          <div className="flex items-center gap-2">
-                            <CustomAvatar name={c.userName} />
-                            <span className="font-medium">{c.userName}</span>
-                            <span className="text-muted-foreground text-xs">
-                              {formatDate(c.createdAt)}
-                            </span>
+                        <div
+                          key={c.id}
+                          className="flex items-center justify-between"
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <CustomAvatar name={c.userName} />
+                              <span className="font-medium">{c.userName}</span>
+                              <span className="text-muted-foreground text-xs">
+                                {formatDate(c.createdAt)}
+                              </span>
+                            </div>
+                            <div className="py-1 px-9">
+                              <p className="font-light">{c.message}</p>
+                            </div>
                           </div>
-                          <div className="py-1 px-9">
-                            <p className="font-light">{c.message}</p>
-                          </div>
+                          {user &&
+                            (user.role === USER_ROLE.ADMIN ||
+                              user.id === c.userId) && (
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="mr-2 hover:text-red-600"
+                                onClick={() => {
+                                  setTicketCommentId(c.id);
+                                  setIsModelDeleteOpen(true);
+                                }}
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            )}
                         </div>
                       ))}
                     </div>
@@ -347,9 +391,15 @@ export function TicketDetails() {
         </div>
       </div>
       <ModalTicket
-        open={isModelOpen}
-        onOpenChange={setIsModelOpen}
+        open={isModelEditOpen}
+        onOpenChange={setIsModelEditOpen}
         ticket={ticketDetails.ticket}
+      />
+      <ModalDelete
+        open={isModelDeleteOpen}
+        onOpenChange={setIsModelDeleteOpen}
+        title="Excluir Comentário"
+        deleteFunction={deleteComment}
       />
     </div>
   );
