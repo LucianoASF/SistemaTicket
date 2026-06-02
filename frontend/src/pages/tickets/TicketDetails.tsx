@@ -8,7 +8,7 @@ import {
   Send,
   Trash2,
 } from 'lucide-react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs';
@@ -48,20 +48,29 @@ const statusConfig = {
 export function TicketDetails() {
   const { user } = useAuth();
   const { id } = useParams();
+  const navigate = useNavigate();
   const [ticketDetails, setTicketDetails] = useState<TicketDetails>();
   const [isModelEditOpen, setIsModelEditOpen] = useState(false);
-  const [isModelDeleteOpen, setIsModelDeleteOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    deleteFunction: () => Promise<void>;
+  }>({ isOpen: false, title: '', deleteFunction: async () => {} });
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState('');
-  const [ticketCommentId, setTicketCommentId] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchTicket = async () => {
-      const response = await api.get<TicketDetails>(`/tickets/${id}`);
-      setTicketDetails(response.data);
-      setLoading(false);
+      try {
+        const response = await api.get<TicketDetails>(`/tickets/${id}`);
+        setTicketDetails(response.data);
+      } catch {
+        return;
+      } finally {
+        setLoading(false);
+      }
     };
     fetchTicket();
   }, [id]);
@@ -99,14 +108,14 @@ export function TicketDetails() {
     }
   }
 
-  async function deleteComment() {
-    await api.delete(`/tickets/${id}/ticket-comments/${ticketCommentId}`);
+  async function deleteComment(commentId: number) {
+    await api.delete(`/tickets/${id}/ticket-comments/${commentId}`);
     setTicketDetails((ticket) =>
       ticket
         ? {
             ...ticket,
             ticketComments: ticket.ticketComments.filter(
-              (comment) => comment.id !== ticketCommentId,
+              (comment) => comment.id !== commentId,
             ),
           }
         : ticket,
@@ -115,6 +124,30 @@ export function TicketDetails() {
       position: 'top-right',
     });
   }
+
+  async function deleteTicket(ticketId: number) {
+    await api.delete(`/tickets/${ticketId}`);
+    navigate('/tickets');
+    toast.success('Ticket excluido com sucesso!', {
+      position: 'top-right',
+    });
+  }
+
+  const handleOpenDeleteTicket = (ticketId: number) => {
+    setModalConfig({
+      isOpen: true,
+      title: 'Excluir o Ticket',
+      deleteFunction: () => deleteTicket(ticketId),
+    });
+  };
+
+  const handleOpenDeleteComment = (commentId: number) => {
+    setModalConfig({
+      isOpen: true,
+      title: 'Excluir o Comentário',
+      deleteFunction: () => deleteComment(commentId),
+    });
+  };
 
   if (loading) {
     return <Loading variant="page" />;
@@ -137,7 +170,7 @@ export function TicketDetails() {
   }
   return (
     <div className="space-y-6">
-      <div className="flex justify-between">
+      <div className="flex items-center justify-between">
         <div className="flex gap-4">
           <Button variant="ghost" size="icon" asChild>
             <Link to="/tickets">
@@ -155,10 +188,22 @@ export function TicketDetails() {
             <h1 className="text-2xl font-bold">{ticketDetails.ticket.title}</h1>
           </div>
         </div>
-        <Button variant="outline" onClick={() => setIsModelEditOpen(true)}>
-          <Edit className="h-4 w-4 mr-2" />
-          Editar
-        </Button>
+        <div className="space-x-2">
+          <Button variant="outline" onClick={() => setIsModelEditOpen(true)}>
+            <Edit className="h-4 w-4 mr-2" />
+            Editar
+          </Button>
+          {(user?.role === USER_ROLE.ADMIN ||
+            user?.id === ticketDetails.ticket.createdById) && (
+            <Button
+              variant="destructive"
+              onClick={() => handleOpenDeleteTicket(Number(id))}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Remover
+            </Button>
+          )}
+        </div>
       </div>
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
@@ -216,10 +261,7 @@ export function TicketDetails() {
                                 size="icon"
                                 variant="ghost"
                                 className="mr-2 hover:text-destructive"
-                                onClick={() => {
-                                  setTicketCommentId(c.id);
-                                  setIsModelDeleteOpen(true);
-                                }}
+                                onClick={() => handleOpenDeleteComment(c.id)}
                               >
                                 <Trash2 className="size-4" />
                               </Button>
@@ -403,10 +445,12 @@ export function TicketDetails() {
         ticket={ticketDetails.ticket}
       />
       <ModalDelete
-        open={isModelDeleteOpen}
-        onOpenChange={setIsModelDeleteOpen}
-        title="Excluir Comentário"
-        deleteFunction={deleteComment}
+        open={modalConfig.isOpen}
+        onOpenChange={(open) =>
+          setModalConfig((prev) => ({ ...prev, isOpen: open }))
+        }
+        title={modalConfig.title}
+        deleteFunction={modalConfig.deleteFunction}
       />
     </div>
   );

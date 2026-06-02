@@ -31,7 +31,7 @@ export function ModalDelete({
           </div>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription className="text-muted-foreground text-center">
-            Tem certeza que deseja excluir este item? Esta acao nao pode ser
+            Tem certeza que deseja excluir este item? Essa ação não pode ser
             desfeita.
           </DialogDescription>
         </DialogHeader>
