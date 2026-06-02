@@ -88,11 +88,11 @@ public class TicketService : ITicketService
 
         if (isUser)
         {
-            if (ticket.Status != ticketUpdateDto.Status)
+            if (ticket.Status != ticketUpdateDto.Status && ticketUpdateDto.Status.HasValue)
             {
                 throw new BadRequestException(new Dictionary<string, string[]>() { { "status", ["you do not have authorization to change the status"] } });
             }
-            if (ticket.Priority != ticketUpdateDto.Priority)
+            if (ticket.Priority != ticketUpdateDto.Priority && ticketUpdateDto.Priority.HasValue)
             {
                 throw new BadRequestException(new Dictionary<string, string[]>() { { "priority", ["you do not have authorization to change the priority"] } });
             }

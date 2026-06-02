@@ -443,6 +443,11 @@ export function TicketDetails() {
         open={isModelEditOpen}
         onOpenChange={setIsModelEditOpen}
         ticket={ticketDetails.ticket}
+        onSuccess={(updatedTicket) =>
+          setTicketDetails((details) =>
+            details ? { ...details, ticket: updatedTicket } : details,
+          )
+        }
       />
       <ModalDelete
         open={modalConfig.isOpen}

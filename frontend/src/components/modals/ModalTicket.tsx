@@ -1,3 +1,4 @@
+import { Controller, useForm } from 'react-hook-form';
 import { Button } from '../ui/button';
 import {
   Dialog,
@@ -7,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../ui/dialog';
-import { Field, FieldGroup, FieldLabel } from '../ui/field';
+import { Field, FieldError, FieldGroup, FieldLabel } from '../ui/field';
 import { Input } from '../ui/input';
 import {
   Select,
@@ -17,35 +18,110 @@ import {
   SelectValue,
 } from '../ui/select';
 import { Textarea } from '../ui/textarea';
+import {
+  TICKET_PRIORITY,
+  TICKET_STATUS,
+  type Ticket,
+} from '../../types/ticket';
+import {
+  type ModalTicketFormInputs,
+  modalTicketSchema,
+} from '../../schemas/modalTicketSchema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '../../contexts/useAuth';
+import { api } from '#lib/axios.ts';
+import { toast } from 'sonner';
+import { USER_ROLE } from '../../types/role';
 
 interface ModalTicketProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  ticket?: object;
+  ticket?: Ticket;
+  onSuccess: (ticket: Ticket) => void;
 }
 
-export function ModalTicket({ open, onOpenChange, ticket }: ModalTicketProps) {
+export function ModalTicket({
+  open,
+  onOpenChange,
+  ticket,
+  onSuccess,
+}: ModalTicketProps) {
   const isEditing = !!ticket;
+  const { user } = useAuth();
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ModalTicketFormInputs>({
+    resolver: zodResolver(modalTicketSchema),
+    values: setValues(),
+  });
+  function setValues() {
+    const baseValues = {
+      isEditing: isEditing,
+      userRole: user!.role,
+      title: ticket?.title || '',
+      description: ticket?.description || '',
+    };
+    if (user?.role === USER_ROLE.ADMIN) {
+      return {
+        ...baseValues,
+        status: ticket?.status,
+        priority: ticket?.priority,
+        assignedUserId: ticket?.assignedToId || '',
+      };
+    }
+    if (user?.role === USER_ROLE.SUPPORT) {
+      return {
+        ...baseValues,
+        status: ticket?.status,
+        priority: ticket?.priority,
+      };
+    }
+    if (user?.role === USER_ROLE.USER) {
+      return baseValues;
+    }
+  }
+
+  function handleCancel() {
+    reset();
+    onOpenChange(false);
+  }
+
+  async function onSubmit(data: ModalTicketFormInputs) {
+    if (isEditing) {
+      const response = await api.patch<Ticket>(`/tickets/${ticket.id}`, data);
+      onSuccess(response.data);
+      handleCancel();
+      toast.success('Ticket Editado com sucesso', { position: 'top-right' });
+    }
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleCancel}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
             {isEditing ? 'Editar Ticket' : 'Novo Ticket'}
           </DialogTitle>
           <DialogDescription>
-            Preencha as informações para criar um novo ticket.
+            Preencha as informações para{' '}
+            {isEditing ? 'editar o Ticket' : 'criar novo Ticket'}.
           </DialogDescription>
         </DialogHeader>
-        <form>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <fieldset>
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="title">Título</FieldLabel>
                 <Input
-                  id="tiitle"
+                  id="title"
                   placeholder="Descreva o problema brevemente"
+                  {...register('title')}
                 />
+                <FieldError>{errors.title?.message}</FieldError>
               </Field>
               <Field>
                 <FieldLabel htmlFor="description">Descrição</FieldLabel>
@@ -53,43 +129,94 @@ export function ModalTicket({ open, onOpenChange, ticket }: ModalTicketProps) {
                   id="description"
                   placeholder="Forneça mais detalhes sobre o problema..."
                   cols={4}
+                  {...register('description')}
                 />
+                <FieldError>{errors.description?.message}</FieldError>
               </Field>
-              <div className="grid sm:grid-cols-2 gap-3">
+              {user?.role !== USER_ROLE.USER && (
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Field>
+                    <FieldLabel id="status">Status</FieldLabel>
+                    <Controller
+                      name="status"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger className="">
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={TICKET_STATUS.OPEN}>
+                              Aberto
+                            </SelectItem>
+                            <SelectItem value={TICKET_STATUS.INPROGRESS}>
+                              Em Progresso
+                            </SelectItem>
+                            <SelectItem value={TICKET_STATUS.CLOSED}>
+                              Fechado
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </Field>
+                  <Field>
+                    <FieldLabel id="priority">Prioridade</FieldLabel>
+                    <Controller
+                      name="priority"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Priority" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={TICKET_PRIORITY.LOW}>
+                              Baixa
+                            </SelectItem>
+                            <SelectItem value={TICKET_PRIORITY.MEDIUM}>
+                              Média
+                            </SelectItem>
+                            <SelectItem value={TICKET_PRIORITY.HIGH}>
+                              Alta
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </Field>
+                </div>
+              )}
+              {user?.role === USER_ROLE.ADMIN && (
                 <Field>
-                  <FieldLabel id="status">Status</FieldLabel>
-                  <Select>
-                    <SelectTrigger className="">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="open">Aberto</SelectItem>
-                      <SelectItem value="in-progress">Em Progresso</SelectItem>
-                      <SelectItem value="closed">Fechado</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FieldLabel id="assignedUserId">
+                    Id do usuário atribuído
+                  </FieldLabel>
+                  <Input
+                    id="assignedUserId"
+                    placeholder="Digite o Id de quem vai ser atribuído"
+                    {...register('assignedUserId')}
+                  />
+                  <FieldError>{errors.assignedUserId?.message}</FieldError>
                 </Field>
-                <Field>
-                  <FieldLabel id="priority">Prioridade</FieldLabel>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Baixa</SelectItem>
-                      <SelectItem value="medium">Média</SelectItem>
-                      <SelectItem value="high">Alta</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-              </div>
+              )}
             </FieldGroup>
-
             <DialogFooter className="mt-4">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
+              <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancelar
               </Button>
-              <Button>Criar Ticket</Button>
+              <Button
+                disabled={isSubmitting}
+                onClick={() => console.log(errors)}
+              >
+                {isEditing ? 'Editar' : 'Criar'} Ticket
+              </Button>
             </DialogFooter>
           </fieldset>
         </form>
