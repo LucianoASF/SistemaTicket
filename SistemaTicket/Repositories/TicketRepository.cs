@@ -142,6 +142,7 @@ public class TicketRepository : ITicketRepository
                 .OrderByDescending(th => th.ChangedAt)
                 .ToList(),
             })
+            .AsSplitQuery()
             .FirstOrDefaultAsync();
 
         return ticketDetails;
