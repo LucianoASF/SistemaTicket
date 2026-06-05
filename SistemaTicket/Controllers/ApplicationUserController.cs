@@ -35,7 +35,7 @@ public class ApplicationUserController : ControllerBase
 
     [Authorize]
     [HttpGet("{id}")]
-    public async Task<ActionResult<ApplicationUserWithTicketsResponseDto>> GetByIdAsync(string id)
+    public async Task<ActionResult<ApplicationUserWithTicketsResponseDto>> GetUserWithTicketsByIdAsync(string id)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var isUser = User.IsInRole(nameof(UserRole.User));
@@ -43,7 +43,7 @@ public class ApplicationUserController : ControllerBase
         {
             return Forbid();
         }
-        return Ok(await _applicationUserService.GetByIdAsync(id));
+        return Ok(await _applicationUserService.GetUserWithTicketsByIdAsync(id));
     }
 
     [Authorize]
@@ -73,5 +73,12 @@ public class ApplicationUserController : ControllerBase
         }
         await _applicationUserService.DeleteAsync(id);
         return NoContent();
+    }
+
+    [Authorize(Roles = nameof(UserRole.Admin))]
+    [HttpGet("options")]
+    public async Task<ActionResult<List<ApplicationUserResponseDto>>> GetOptionsAsync(string? searchQuery)
+    {
+        return Ok(await _applicationUserService.GetOptionsAsync(searchQuery));
     }
 }

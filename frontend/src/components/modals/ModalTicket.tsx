@@ -32,6 +32,9 @@ import { useAuth } from '../../contexts/useAuth';
 import { api } from '#lib/axios.ts';
 import { toast } from 'sonner';
 import { USER_ROLE } from '../../types/role';
+import { UserCombobox } from '#components/UserCombobox';
+import { useEffect, useState } from 'react';
+import type { User } from '../../types/user';
 
 interface ModalTicketProps {
   open: boolean;
@@ -46,6 +49,7 @@ export function ModalTicket({
   ticket,
   onSuccess,
 }: ModalTicketProps) {
+  const [users, setUsers] = useState<User[]>([]);
   const isEditing = !!ticket;
   const { user } = useAuth();
   const {
@@ -58,6 +62,28 @@ export function ModalTicket({
     resolver: zodResolver(modalTicketSchema),
     values: setValues(),
   });
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get<User[]>('/users/options', {
+          params: {
+            searchQuery: searchQuery || undefined,
+          },
+        });
+        setUsers(response.data);
+      } catch {
+        return;
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, [searchQuery]);
+
   function setValues() {
     const baseValues = {
       isEditing: isEditing,
@@ -88,6 +114,7 @@ export function ModalTicket({
   function handleCancel() {
     reset();
     onOpenChange(false);
+    setSearchQuery('');
   }
 
   async function onSubmit(data: ModalTicketFormInputs) {
@@ -195,13 +222,20 @@ export function ModalTicket({
               )}
               {user?.role === USER_ROLE.ADMIN && (
                 <Field>
-                  <FieldLabel id="assignedUserId">
-                    Id do usuário atribuído
-                  </FieldLabel>
-                  <Input
-                    id="assignedUserId"
-                    placeholder="Digite o Id de quem vai ser atribuído"
-                    {...register('assignedUserId')}
+                  <FieldLabel id="assignedUserId">Usuário atribuído</FieldLabel>
+                  <Controller
+                    name="assignedUserId"
+                    control={control}
+                    render={({ field }) => (
+                      <UserCombobox
+                        users={users}
+                        value={field.value}
+                        loading={loading}
+                        searchQuery={searchQuery}
+                        onSelectChange={field.onChange}
+                        setSearchQuery={setSearchQuery}
+                      />
+                    )}
                   />
                   <FieldError>{errors.assignedUserId?.message}</FieldError>
                 </Field>
@@ -211,10 +245,7 @@ export function ModalTicket({
               <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancelar
               </Button>
-              <Button
-                disabled={isSubmitting}
-                onClick={() => console.log(errors)}
-              >
+              <Button disabled={isSubmitting}>
                 {isEditing ? 'Editar' : 'Criar'} Ticket
               </Button>
             </DialogFooter>

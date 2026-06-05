@@ -1,9 +1,13 @@
 import { Badge } from '#components/ui/badge';
 import { Shield } from 'lucide-react';
 import { USER_ROLE, type UserRole } from '../../types/role';
+import { cn } from '#lib/utils.ts';
+
+type Variant = 'small' | 'normal';
 
 interface RoleBadgeProps {
   role: UserRole;
+  variant?: Variant;
 }
 
 const roleConfig = {
@@ -21,12 +25,20 @@ const roleConfig = {
   },
 };
 
-export function RoleBadge({ role }: RoleBadgeProps) {
+export function RoleBadge({ role, variant = 'normal' }: RoleBadgeProps) {
   const config = roleConfig[role];
 
   return (
-    <Badge variant="outline" className={config.className}>
-      <Shield className="mr-1 h-3 w-3" />
+    <Badge
+      variant="outline"
+      className={cn(
+        variant === 'small' && 'px-1.5 py-0 text-[10px]',
+        config.className,
+      )}
+    >
+      <Shield
+        className={variant === 'small' ? 'mr-0.5 size-1' : 'mr-1 size-3'}
+      />
       {config.label}
     </Badge>
   );

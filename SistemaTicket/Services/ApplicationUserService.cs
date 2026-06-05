@@ -59,7 +59,8 @@ public class ApplicationUserService : IApplicationUserService
             Name = applicationUser.Name,
             Email = applicationUser.Email,
             CreatedAt = applicationUser.CreatedAt,
-            Role = applicationUser.Role
+            Role = applicationUser.Role,
+            IsActive = applicationUser.IsActive
         };
     }
 
@@ -132,7 +133,7 @@ public class ApplicationUserService : IApplicationUserService
         };
     }
 
-    public async Task<ApplicationUserWithTicketsResponseDto> GetByIdAsync(string id)
+    public async Task<ApplicationUserWithTicketsResponseDto> GetUserWithTicketsByIdAsync(string id)
     {
         var response = await _userManager.Users
             .AsNoTracking()
@@ -204,6 +205,7 @@ public class ApplicationUserService : IApplicationUserService
                             : null
                     }).ToList()
             })
+            .AsSplitQuery()
             .FirstOrDefaultAsync();
 
         if (response == null)
@@ -215,6 +217,25 @@ public class ApplicationUserService : IApplicationUserService
 
         return response;
     }
+
+    public async Task<ApplicationUserResponseDto> GetByIdAsync(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            throw new NotFoundException("user not found.");
+        }
+        return new ApplicationUserResponseDto
+        {
+            Id = user.Id,
+            Email = user.Email!,
+            Name = user.Name,
+            CreatedAt = user.CreatedAt,
+            Role = user.Role,
+            IsActive = user.IsActive
+        };
+    }
+
     public async Task<ApplicationUserResponseDto> UpdateAsync(string id, ApplicationUserUpdateDto applicationUserUpdateDto, bool isAdmin)
     {
         var user = await _userManager.FindByIdAsync(id);
@@ -294,5 +315,31 @@ public class ApplicationUserService : IApplicationUserService
                 );
             throw new BadRequestException(errors);
         }
+    }
+
+    public async Task<List<ApplicationUserResponseDto>> GetOptionsAsync(string? searchQuery)
+    {
+        var query = _userManager.Users.AsNoTracking().Where(u => u.IsActive && (u.Role == UserRole.Admin || u.Role == UserRole.Support));
+
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            query = query.Where(u => u.Name.Contains(searchQuery) || u.Email!.Contains(searchQuery));
+        }
+
+        return await query
+            .OrderBy(u => u.Name)
+            .Take(20)
+            .Select(u => new ApplicationUserResponseDto
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Email = u.Email!,
+                Role = u.Role,
+                CreatedAt = u.CreatedAt,
+                IsActive = u.IsActive,
+            })
+            .ToListAsync();
+
+
     }
 }

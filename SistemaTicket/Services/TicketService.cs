@@ -1,4 +1,5 @@
-﻿using SistemaTicket.Dtos.Ticket;
+﻿using SistemaTicket.Dtos.ApplicationUser;
+using SistemaTicket.Dtos.Ticket;
 using SistemaTicket.Entities;
 using SistemaTicket.Enums;
 using SistemaTicket.Exceptions;
@@ -10,11 +11,13 @@ public class TicketService : ITicketService
 {
     private readonly ITicketRepository _ticketRepository;
     private readonly ITicketHistoryRepository _ticketHistoryRepository;
+    private readonly IApplicationUserService _applicationUserService;
 
-    public TicketService(ITicketRepository ticketRepository, ITicketHistoryRepository ticketHistoryRepository)
+    public TicketService(ITicketRepository ticketRepository, ITicketHistoryRepository ticketHistoryRepository, IApplicationUserService applicationUserService)
     {
         _ticketRepository = ticketRepository;
         _ticketHistoryRepository = ticketHistoryRepository;
+        _applicationUserService = applicationUserService;
     }
 
     public async Task<TicketResponseDto> CreateAsync(TicketCreateDto ticketCreateDto, string userId, bool isUser)
@@ -105,6 +108,7 @@ public class TicketService : ITicketService
             ChangedById = userId
         };
         bool hasChanges = false;
+        ApplicationUserResponseDto? user = null;
 
         if (ticketUpdateDto.Status.HasValue && ticketUpdateDto.Status != ticket.Status)
         {
@@ -120,6 +124,8 @@ public class TicketService : ITicketService
         }
         if (ticketUpdateDto.AssignedUserId != null && ticketUpdateDto.AssignedUserId != ticket.AssignedToId && ticket.AssignedToId != null)
         {
+            user = await _applicationUserService.GetByIdAsync(ticketUpdateDto.AssignedUserId);
+
             ticketHistory.OldAssignedUserId = ticket.AssignedToId;
             ticketHistory.NewAssignedUserId = ticketUpdateDto.AssignedUserId;
             hasChanges = true;
@@ -137,6 +143,7 @@ public class TicketService : ITicketService
 
         await _ticketRepository.SaveAsync();
 
+
         return new TicketResponseDto
         {
             Id = ticket.Id,
@@ -148,7 +155,7 @@ public class TicketService : ITicketService
             CreatedById = ticket.CreatedById,
             CreatedByName = ticket.CreatedBy.Name,
             AssignedToId = ticket.AssignedToId,
-            AssignedToName = ticket.AssignedTo?.Name
+            AssignedToName = user?.Name ?? ticket.AssignedTo?.Name
         };
     }
     public async Task DeleteAsync(int id, string userId, bool isUser)
