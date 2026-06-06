@@ -68,6 +68,7 @@ export function ModalTicket({
   useEffect(() => {
     const fetchUsers = async () => {
       try {
+        if (user?.role !== USER_ROLE.ADMIN) return;
         setLoading(true);
         const response = await api.get<User[]>('/users/options', {
           params: {
@@ -82,7 +83,7 @@ export function ModalTicket({
       }
     };
     fetchUsers();
-  }, [searchQuery]);
+  }, [searchQuery, user?.role]);
 
   function setValues() {
     const baseValues = {
@@ -118,11 +119,27 @@ export function ModalTicket({
   }
 
   async function onSubmit(data: ModalTicketFormInputs) {
+    const dataToSend: Omit<ModalTicketFormInputs, 'isEditing' | 'userRole'> = {
+      title: data.title,
+      description: data.description,
+      status: data.status,
+      priority: data.priority,
+      assignedUserId: data.assignedUserId,
+    };
+
     if (isEditing) {
-      const response = await api.patch<Ticket>(`/tickets/${ticket.id}`, data);
+      const response = await api.patch<Ticket>(
+        `/tickets/${ticket.id}`,
+        dataToSend,
+      );
       onSuccess(response.data);
       handleCancel();
-      toast.success('Ticket Editado com sucesso', { position: 'top-right' });
+      toast.success('Ticket editado com sucesso', { position: 'top-right' });
+    } else {
+      const response = await api.post<Ticket>('/tickets', dataToSend);
+      onSuccess(response.data);
+      handleCancel();
+      toast.success('Ticket criado com sucesso', { position: 'top-right' });
     }
   }
 
@@ -161,35 +178,37 @@ export function ModalTicket({
                 <FieldError>{errors.description?.message}</FieldError>
               </Field>
               {user?.role !== USER_ROLE.USER && (
-                <div className="grid sm:grid-cols-2 gap-3">
-                  <Field>
-                    <FieldLabel id="status">Status</FieldLabel>
-                    <Controller
-                      name="status"
-                      control={control}
-                      render={({ field }) => (
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger className="">
-                            <SelectValue placeholder="Status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value={TICKET_STATUS.OPEN}>
-                              Aberto
-                            </SelectItem>
-                            <SelectItem value={TICKET_STATUS.INPROGRESS}>
-                              Em Progresso
-                            </SelectItem>
-                            <SelectItem value={TICKET_STATUS.CLOSED}>
-                              Fechado
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </Field>
+                <div className={isEditing ? 'grid sm:grid-cols-2 gap-3' : ''}>
+                  {isEditing && (
+                    <Field>
+                      <FieldLabel id="status">Status</FieldLabel>
+                      <Controller
+                        name="status"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            value={field.value ?? ''}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="">
+                              <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={TICKET_STATUS.OPEN}>
+                                Aberto
+                              </SelectItem>
+                              <SelectItem value={TICKET_STATUS.INPROGRESS}>
+                                Em Progresso
+                              </SelectItem>
+                              <SelectItem value={TICKET_STATUS.CLOSED}>
+                                Fechado
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </Field>
+                  )}
                   <Field>
                     <FieldLabel id="priority">Prioridade</FieldLabel>
                     <Controller
@@ -197,11 +216,11 @@ export function ModalTicket({
                       control={control}
                       render={({ field }) => (
                         <Select
-                          value={field.value}
+                          value={field.value ?? ''}
                           onValueChange={field.onChange}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Priority" />
+                            <SelectValue placeholder="Prioridade" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value={TICKET_PRIORITY.LOW}>

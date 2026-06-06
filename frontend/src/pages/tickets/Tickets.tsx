@@ -52,17 +52,22 @@ export function Tickets() {
 
   useEffect(() => {
     const fetchTickets = async () => {
-      const request = await api.get<PagedTickets>('/tickets', {
-        params: {
-          page: currentPage,
-          searchQuery: searchQuery || undefined,
-          status: statusFilter === 'all' ? undefined : statusFilter,
-          priority: priorityFilter === 'all' ? undefined : priorityFilter,
-        },
-      });
-      setTickets(request.data.tickets);
-      setTotal(request.data.total);
-      setLoading(false);
+      try {
+        const request = await api.get<PagedTickets>('/tickets', {
+          params: {
+            page: currentPage,
+            searchQuery: searchQuery || undefined,
+            status: statusFilter === 'all' ? undefined : statusFilter,
+            priority: priorityFilter === 'all' ? undefined : priorityFilter,
+          },
+        });
+        setTickets(request.data.tickets);
+        setTotal(request.data.total);
+      } catch {
+        return;
+      } finally {
+        setLoading(false);
+      }
     };
     fetchTickets();
   }, [currentPage, statusFilter, priorityFilter, searchQuery]);
@@ -238,7 +243,31 @@ export function Tickets() {
           </div>
         </div>
       </div>
-      <ModalTicket open={isModelOpen} onOpenChange={setIsModelOpen} />
+      <ModalTicket
+        open={isModelOpen}
+        onOpenChange={setIsModelOpen}
+        onSuccess={(ticket) => handleTicketCreate(ticket)}
+      />
     </div>
   );
+  function handleTicketCreate(ticket: Ticket) {
+    if (
+      (ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ticket.id.toString().includes(searchQuery)) &&
+      (statusFilter === 'all' || statusFilter === ticket.status) &&
+      (priorityFilter === 'all' || priorityFilter === ticket.priority) &&
+      currentPage === 1
+    ) {
+      setTickets((prev) => {
+        const newLIst = [ticket, ...prev];
+        if (newLIst.length > ITEMS_PER_PAGE) {
+          return newLIst.slice(0, -1);
+        }
+        return newLIst;
+      });
+      setTotal((prev) => prev + 1);
+    } else {
+      setSearchParams({});
+    }
+  }
 }
