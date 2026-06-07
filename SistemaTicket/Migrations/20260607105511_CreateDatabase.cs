@@ -167,8 +167,8 @@ namespace SistemaTicket.Migrations
                     NewStatus = table.Column<int>(type: "int", nullable: true),
                     OldPriority = table.Column<int>(type: "int", nullable: true),
                     NewPriority = table.Column<int>(type: "int", nullable: true),
-                    OldAssignedUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    NewAssignedUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    OldAssignedToId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    NewAssignedToId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     ChangedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     ChangedById = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     TicketId = table.Column<int>(type: "int", nullable: false)
@@ -182,13 +182,13 @@ namespace SistemaTicket.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_TicketHistories_AspNetUsers_NewAssignedUserId",
-                        column: x => x.NewAssignedUserId,
+                        name: "FK_TicketHistories_AspNetUsers_NewAssignedToId",
+                        column: x => x.NewAssignedToId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_TicketHistories_AspNetUsers_OldAssignedUserId",
-                        column: x => x.OldAssignedUserId,
+                        name: "FK_TicketHistories_AspNetUsers_OldAssignedToId",
+                        column: x => x.OldAssignedToId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -237,14 +237,14 @@ namespace SistemaTicket.Migrations
                 column: "ChangedById");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TicketHistories_NewAssignedUserId",
+                name: "IX_TicketHistories_NewAssignedToId",
                 table: "TicketHistories",
-                column: "NewAssignedUserId");
+                column: "NewAssignedToId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TicketHistories_OldAssignedUserId",
+                name: "IX_TicketHistories_OldAssignedToId",
                 table: "TicketHistories",
-                column: "OldAssignedUserId");
+                column: "OldAssignedToId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TicketHistories_TicketId",

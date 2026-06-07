@@ -1,5 +1,4 @@
-﻿using SistemaTicket.Dtos.ApplicationUser;
-using SistemaTicket.Dtos.Ticket;
+﻿using SistemaTicket.Dtos.Ticket;
 using SistemaTicket.Entities;
 using SistemaTicket.Enums;
 using SistemaTicket.Exceptions;
@@ -20,11 +19,21 @@ public class TicketService : ITicketService
         _applicationUserService = applicationUserService;
     }
 
-    public async Task<TicketResponseDto> CreateAsync(TicketCreateDto ticketCreateDto, string userId, bool isUser)
+    public async Task<TicketResponseDto> CreateAsync(TicketCreateDto ticketCreateDto, string userId, UserRole role)
     {
-        if (isUser || !ticketCreateDto.Priority.HasValue)
+        if (role == UserRole.User && ticketCreateDto.Priority.HasValue)
+        {
+            throw new BadRequestException(new Dictionary<string, string[]>() { { "Priority", ["you do not have authorization to set the priority"] } });
+        }
+
+        if (role != UserRole.Admin && ticketCreateDto.AssignedToId != null)
+        {
+            throw new BadRequestException(new Dictionary<string, string[]>() { { "AssignedToId", ["you do not have authorization to set the assigned user"] } });
+        }
+        if (!ticketCreateDto.Priority.HasValue)
         {
             ticketCreateDto.Priority = TicketPriority.Low;
+
         }
 
         Ticket newTicket = new Ticket
@@ -34,8 +43,15 @@ public class TicketService : ITicketService
             Status = TicketStatus.Open,
             Priority = ticketCreateDto.Priority.Value,
             CreatedAt = DateTimeOffset.UtcNow,
-            CreatedById = userId
+            CreatedById = userId,
+            AssignedToId = ticketCreateDto.AssignedToId,
         };
+        string? assignedToName = null;
+        if (ticketCreateDto.AssignedToId != null)
+        {
+            assignedToName = await _applicationUserService.GetNameByAssignedUserAsync(ticketCreateDto.AssignedToId);
+
+        }
         var response = await _ticketRepository.CreateAsync(newTicket);
         return new TicketResponseDto
         {
@@ -46,7 +62,9 @@ public class TicketService : ITicketService
             Priority = response.Priority,
             CreatedAt = response.CreatedAt,
             CreatedById = response.CreatedById,
-            CreatedByName = response.CreatedBy.Name
+            CreatedByName = response.CreatedBy.Name,
+            AssignedToId = response.AssignedToId,
+            AssignedToName = assignedToName
         };
     }
 
@@ -68,7 +86,7 @@ public class TicketService : ITicketService
                 Priority = ticket.Priority,
                 CreatedAt = ticket.CreatedAt,
                 CreatedById = ticket.CreatedById,
-                CreatedByName = ticket.CreatedByName
+                CreatedByName = ticket.CreatedByName,
             });
         }
 
@@ -85,11 +103,11 @@ public class TicketService : ITicketService
         };
     }
 
-    public async Task<TicketResponseDto> UpdateAsync(int id, string userId, bool isUser, TicketUpdateDto ticketUpdateDto)
+    public async Task<TicketResponseDto> UpdateAsync(int id, string userId, UserRole role, TicketUpdateDto ticketUpdateDto)
     {
-        var ticket = await GetTicketOrThrowAsync(id, userId, isUser);
+        var ticket = await GetTicketOrThrowAsync(id, userId, role);
 
-        if (isUser)
+        if (role == UserRole.User)
         {
             if (ticket.Status != ticketUpdateDto.Status && ticketUpdateDto.Status.HasValue)
             {
@@ -100,6 +118,10 @@ public class TicketService : ITicketService
                 throw new BadRequestException(new Dictionary<string, string[]>() { { "priority", ["you do not have authorization to change the priority"] } });
             }
         }
+        if (role != UserRole.Admin && !string.IsNullOrWhiteSpace(ticketUpdateDto.AssignedToId))
+        {
+            throw new BadRequestException(new Dictionary<string, string[]>() { { "AssignedToId", ["you do not have authorization to change the AssignedToId"] } });
+        }
 
         TicketHistory ticketHistory = new()
         {
@@ -108,7 +130,7 @@ public class TicketService : ITicketService
             ChangedById = userId
         };
         bool hasChanges = false;
-        ApplicationUserResponseDto? user = null;
+        string? assignedToName = ticket.AssignedTo?.Name;
 
         if (ticketUpdateDto.Status.HasValue && ticketUpdateDto.Status != ticket.Status)
         {
@@ -122,12 +144,19 @@ public class TicketService : ITicketService
             ticketHistory.NewPriority = ticketUpdateDto.Priority.Value;
             hasChanges = true;
         }
-        if (ticketUpdateDto.AssignedUserId != null && ticketUpdateDto.AssignedUserId != ticket.AssignedToId && ticket.AssignedToId != null)
+        if (ticketUpdateDto.AssignedToId != ticket.AssignedToId)
         {
-            user = await _applicationUserService.GetByIdAsync(ticketUpdateDto.AssignedUserId);
+            if (ticketUpdateDto.AssignedToId != null)
+            {
+                assignedToName = await _applicationUserService.GetNameByAssignedUserAsync(ticketUpdateDto.AssignedToId);
+            }
+            else
+            {
+                assignedToName = null;
+            }
 
-            ticketHistory.OldAssignedUserId = ticket.AssignedToId;
-            ticketHistory.NewAssignedUserId = ticketUpdateDto.AssignedUserId;
+            ticketHistory.OldAssignedToId = ticket.AssignedToId;
+            ticketHistory.NewAssignedToId = ticketUpdateDto.AssignedToId;
             hasChanges = true;
         }
         if (hasChanges)
@@ -139,7 +168,7 @@ public class TicketService : ITicketService
         ticket.Description = ticketUpdateDto.Description;
         ticket.Priority = ticketUpdateDto.Priority ?? ticket.Priority;
         ticket.Status = ticketUpdateDto.Status ?? ticket.Status;
-        ticket.AssignedToId = ticketUpdateDto.AssignedUserId ?? ticket.AssignedToId;
+        ticket.AssignedToId = ticketUpdateDto.AssignedToId;
 
         await _ticketRepository.SaveAsync();
 
@@ -155,17 +184,17 @@ public class TicketService : ITicketService
             CreatedById = ticket.CreatedById,
             CreatedByName = ticket.CreatedBy.Name,
             AssignedToId = ticket.AssignedToId,
-            AssignedToName = user?.Name ?? ticket.AssignedTo?.Name
+            AssignedToName = assignedToName
         };
     }
-    public async Task DeleteAsync(int id, string userId, bool isUser)
+    public async Task DeleteAsync(int id, string userId, UserRole role)
     {
-        var ticket = await GetTicketOrThrowAsync(id, userId, isUser);
+        var ticket = await GetTicketOrThrowAsync(id, userId, role);
         _ticketRepository.Delete(ticket);
         await _ticketRepository.SaveAsync();
     }
 
-    public async Task<TicketDetailsResponseDto> GetDetailsByIdAsync(int id, string userId, bool isUser)
+    public async Task<TicketDetailsResponseDto> GetDetailsByIdAsync(int id, string userId, UserRole role)
     {
 
         var ticketDetails = await _ticketRepository.GetDetailsByIdAsync(id);
@@ -174,7 +203,7 @@ public class TicketService : ITicketService
         {
             throw new NotFoundException("ticket not found");
         }
-        if (ticketDetails.Ticket.CreatedById != userId && isUser)
+        if (ticketDetails.Ticket.CreatedById != userId && (role == UserRole.User || (role == UserRole.Support && ticketDetails.Ticket.AssignedToId != userId)))
         {
             throw new ForbiddenException("you are not authorized to access this ticket");
         }
@@ -182,14 +211,14 @@ public class TicketService : ITicketService
         return ticketDetails;
     }
 
-    private async Task<Ticket> GetTicketOrThrowAsync(int id, string userId, bool isUser)
+    private async Task<Ticket> GetTicketOrThrowAsync(int id, string userId, UserRole role)
     {
         var ticket = await _ticketRepository.GetByIdAsync(id);
         if (ticket == null)
         {
             throw new NotFoundException("ticket not found");
         }
-        if (ticket.CreatedById != userId && isUser)
+        if (ticket.CreatedById != userId && (role == UserRole.User || (role == UserRole.Support && ticket.AssignedToId != userId)))
         {
             throw new ForbiddenException("you are not authorized to access this ticket");
         }

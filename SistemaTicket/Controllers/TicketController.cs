@@ -27,12 +27,17 @@ public class TicketController : ControllerBase
         {
             return Unauthorized();
         }
-        var isUser = User.IsInRole(nameof(UserRole.User));
-        var result = await _ticketService.CreateAsync(dto, userId, isUser);
+        var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+        Enum.TryParse<UserRole>(roleClaim, out var role);
+        if (string.IsNullOrEmpty(roleClaim))
+        {
+            Unauthorized("User role is not specified.");
+        }
+        var result = await _ticketService.CreateAsync(dto, userId, role);
         return CreatedAtAction("GetDetailsById", new { id = result.Id }, result);
     }
 
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Support)}")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpGet]
     public async Task<ActionResult<PagedTicketsResponseDto>> GetAllAsync(int page,
         string? searchQuery, TicketStatus? status, TicketPriority? priority, bool? withStatusCounts)
@@ -49,8 +54,13 @@ public class TicketController : ControllerBase
         {
             return Unauthorized();
         }
-        var isUser = User.IsInRole(nameof(UserRole.User));
-        return Ok(await _ticketService.GetDetailsByIdAsync(id, userId, isUser));
+        var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+        Enum.TryParse<UserRole>(roleClaim, out var role);
+        if (string.IsNullOrEmpty(roleClaim))
+        {
+            Unauthorized("User role is not specified.");
+        }
+        return Ok(await _ticketService.GetDetailsByIdAsync(id, userId, role));
     }
 
     [Authorize]
@@ -62,10 +72,15 @@ public class TicketController : ControllerBase
         {
             return Unauthorized();
         }
-        var isUser = User.IsInRole(nameof(UserRole.User));
-        return Ok(await _ticketService.UpdateAsync(id, userId, isUser, dto));
+        var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+        Enum.TryParse<UserRole>(roleClaim, out var role);
+        if (string.IsNullOrEmpty(roleClaim))
+        {
+            Unauthorized("User role is not specified.");
+        }
+        return Ok(await _ticketService.UpdateAsync(id, userId, role, dto));
     }
-    [Authorize(Roles = nameof(UserRole.Admin))]
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteAsync(int id)
     {
@@ -74,8 +89,14 @@ public class TicketController : ControllerBase
         {
             return Unauthorized();
         }
-        await _ticketService.DeleteAsync(id, userId, false);
+        var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+        Enum.TryParse<UserRole>(roleClaim, out var role);
+        if (string.IsNullOrEmpty(roleClaim))
+        {
+            Unauthorized("User role is not specified.");
+        }
+
+        await _ticketService.DeleteAsync(id, userId, role);
         return NoContent();
     }
 }
-

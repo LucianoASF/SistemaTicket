@@ -12,7 +12,7 @@ using SistemaTicket.Data;
 namespace SistemaTicket.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260530151329_CreateDatabase")]
+    [Migration("20260607105511_CreateDatabase")]
     partial class CreateDatabase
     {
         /// <inheritdoc />
@@ -258,7 +258,7 @@ namespace SistemaTicket.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("NewAssignedUserId")
+                    b.Property<string>("NewAssignedToId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int?>("NewPriority")
@@ -267,7 +267,7 @@ namespace SistemaTicket.Migrations
                     b.Property<int?>("NewStatus")
                         .HasColumnType("int");
 
-                    b.Property<string>("OldAssignedUserId")
+                    b.Property<string>("OldAssignedToId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int?>("OldPriority")
@@ -283,9 +283,9 @@ namespace SistemaTicket.Migrations
 
                     b.HasIndex("ChangedById");
 
-                    b.HasIndex("NewAssignedUserId");
+                    b.HasIndex("NewAssignedToId");
 
-                    b.HasIndex("OldAssignedUserId");
+                    b.HasIndex("OldAssignedToId");
 
                     b.HasIndex("TicketId");
 
@@ -358,7 +358,7 @@ namespace SistemaTicket.Migrations
 
             modelBuilder.Entity("SistemaTicket.Entities.TicketHistory", b =>
                 {
-                    b.HasOne("SistemaTicket.Entities.ApplicationUser", "ChangeBy")
+                    b.HasOne("SistemaTicket.Entities.ApplicationUser", "ChangedBy")
                         .WithMany()
                         .HasForeignKey("ChangedById")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -366,12 +366,12 @@ namespace SistemaTicket.Migrations
 
                     b.HasOne("SistemaTicket.Entities.ApplicationUser", "NewAssignedUser")
                         .WithMany()
-                        .HasForeignKey("NewAssignedUserId")
+                        .HasForeignKey("NewAssignedToId")
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("SistemaTicket.Entities.ApplicationUser", "OldAssignedUser")
                         .WithMany()
-                        .HasForeignKey("OldAssignedUserId")
+                        .HasForeignKey("OldAssignedToId")
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("SistemaTicket.Entities.Ticket", "Ticket")
@@ -380,7 +380,7 @@ namespace SistemaTicket.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ChangeBy");
+                    b.Navigation("ChangedBy");
 
                     b.Navigation("NewAssignedUser");
 

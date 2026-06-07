@@ -26,13 +26,13 @@ public class AppDbContext : IdentityUserContext<ApplicationUser>
         modelBuilder.Entity<TicketHistory>()
             .HasOne(th => th.NewAssignedUser)
             .WithMany()
-            .HasForeignKey(th => th.NewAssignedUserId)
+            .HasForeignKey(th => th.NewAssignedToId)
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<TicketHistory>()
             .HasOne(th => th.OldAssignedUser)
             .WithMany()
-            .HasForeignKey(th => th.OldAssignedUserId)
+            .HasForeignKey(th => th.OldAssignedToId)
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<TicketHistory>()

@@ -9,8 +9,8 @@ public class TicketHistoryResponseDto
     public TicketStatus? NewStatus { get; set; }
     public TicketPriority? OldPriority { get; set; }
     public TicketPriority? NewPriority { get; set; }
-    public string? OldAssignedUserId { get; set; }
-    public string? NewAssignedUserId { get; set; }
+    public string? OldAssignedToId { get; set; }
+    public string? NewAssignedToId { get; set; }
     public string? OldAssignedUserName { get; set; }
     public string? NewAssignedUserName { get; set; }
     public DateTimeOffset ChangedAt { get; set; }

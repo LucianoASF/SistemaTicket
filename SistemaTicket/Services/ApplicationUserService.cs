@@ -218,22 +218,14 @@ public class ApplicationUserService : IApplicationUserService
         return response;
     }
 
-    public async Task<ApplicationUserResponseDto> GetByIdAsync(string id)
+    public async Task<string> GetNameByAssignedUserAsync(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
-        if (user == null)
+        var name = await _userManager.Users.Where(u => u.Id == id && u.Role != UserRole.User).Select(u => u.Name).FirstOrDefaultAsync();
+        if (name == null)
         {
-            throw new NotFoundException("user not found.");
+            throw new NotFoundException("Such user does not exist or cannot be assigned.");
         }
-        return new ApplicationUserResponseDto
-        {
-            Id = user.Id,
-            Email = user.Email!,
-            Name = user.Name,
-            CreatedAt = user.CreatedAt,
-            Role = user.Role,
-            IsActive = user.IsActive
-        };
+        return name;
     }
 
     public async Task<ApplicationUserResponseDto> UpdateAsync(string id, ApplicationUserUpdateDto applicationUserUpdateDto, bool isAdmin)
