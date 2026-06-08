@@ -97,7 +97,7 @@ export function ModalTicket({
         ...baseValues,
         status: ticket?.status,
         priority: ticket?.priority,
-        assignedUserId: ticket?.assignedToId || '',
+        assignedToId: ticket?.assignedToId,
       };
     }
     if (user?.role === USER_ROLE.SUPPORT) {
@@ -124,7 +124,7 @@ export function ModalTicket({
       description: data.description,
       status: data.status,
       priority: data.priority,
-      assignedUserId: data.assignedUserId,
+      assignedToId: data.assignedToId,
     };
 
     if (isEditing) {
@@ -241,9 +241,9 @@ export function ModalTicket({
               )}
               {user?.role === USER_ROLE.ADMIN && (
                 <Field>
-                  <FieldLabel id="assignedUserId">Usuário atribuído</FieldLabel>
+                  <FieldLabel id="assignedToId">Usuário atribuído</FieldLabel>
                   <Controller
-                    name="assignedUserId"
+                    name="assignedToId"
                     control={control}
                     render={({ field }) => (
                       <UserCombobox
@@ -256,7 +256,7 @@ export function ModalTicket({
                       />
                     )}
                   />
-                  <FieldError>{errors.assignedUserId?.message}</FieldError>
+                  <FieldError>{errors.assignedToId?.message}</FieldError>
                 </Field>
               )}
             </FieldGroup>

@@ -12,7 +12,7 @@ const ticketObject = z.object({
   description: z
     .string()
     .min(10, 'A descrição deve ter no mínimo 10 caracteres'),
-  assignedUserId: z.string().optional(),
+  assignedToId: z.string().nullable().optional(),
   status: z.enum(TICKET_STATUS, { message: 'Status inválido' }).optional(),
   priority: z
     .enum(TICKET_PRIORITY, { message: 'Prioridade inválida' })
@@ -51,15 +51,15 @@ function checkIfPriorityIsUndefined(data: TicketData, ctx: z.RefinementCtx) {
   }
 }
 
-function checkIfAssignedUserIdIsUndefined(
+function checkIfAssignedToIdIsUndefined(
   data: TicketData,
   ctx: z.RefinementCtx,
 ) {
-  if (data.assignedUserId !== undefined) {
+  if (data.assignedToId !== undefined) {
     ctx.addIssue({
       code: 'custom',
       message: 'Você não tem permissão para definir quem vai ser atribuído.',
-      path: ['assignedUserId'],
+      path: ['assignedToId'],
     });
   }
 }
@@ -83,31 +83,17 @@ function checkIfPriorityIsFilledIn(data: TicketData, ctx: z.RefinementCtx) {
   }
 }
 
-function checkIfAssignedUserIdIsFilledIn(
-  data: TicketData,
-  ctx: z.RefinementCtx,
-) {
-  if (data.assignedUserId === undefined || data.assignedUserId === ''.trim()) {
-    ctx.addIssue({
-      code: 'custom',
-      message: 'A prioridade é obrigatória.',
-      path: ['assignedUserId'],
-    });
-  }
-}
-
 function validade(data: TicketData, ctx: z.RefinementCtx) {
   if (data.isEditing) {
     if (data.userRole === USER_ROLE.USER) {
       checkIfStatusIsUndefined(data, ctx);
       checkIfPriorityIsUndefined(data, ctx);
-      checkIfAssignedUserIdIsUndefined(data, ctx);
+      checkIfAssignedToIdIsUndefined(data, ctx);
     } else if (data.userRole === USER_ROLE.SUPPORT) {
-      checkIfAssignedUserIdIsUndefined(data, ctx);
+      checkIfAssignedToIdIsUndefined(data, ctx);
       checkIfStatusIsFilledIn(data, ctx);
       checkIfPriorityIsFilledIn(data, ctx);
     } else {
-      checkIfAssignedUserIdIsFilledIn(data, ctx);
       checkIfStatusIsFilledIn(data, ctx);
       checkIfPriorityIsFilledIn(data, ctx);
     }
@@ -115,9 +101,9 @@ function validade(data: TicketData, ctx: z.RefinementCtx) {
     validateStatusOnCreation(data, ctx);
     if (data.userRole === USER_ROLE.USER) {
       checkIfPriorityIsUndefined(data, ctx);
-      checkIfAssignedUserIdIsUndefined(data, ctx);
+      checkIfAssignedToIdIsUndefined(data, ctx);
     } else if (data.userRole === USER_ROLE.SUPPORT) {
-      checkIfAssignedUserIdIsUndefined(data, ctx);
+      checkIfAssignedToIdIsUndefined(data, ctx);
     }
   }
 }

@@ -118,9 +118,17 @@ public class TicketService : ITicketService
                 throw new BadRequestException(new Dictionary<string, string[]>() { { "priority", ["you do not have authorization to change the priority"] } });
             }
         }
-        if (role != UserRole.Admin && !string.IsNullOrWhiteSpace(ticketUpdateDto.AssignedToId))
+        if (role != UserRole.Admin)
         {
-            throw new BadRequestException(new Dictionary<string, string[]>() { { "AssignedToId", ["you do not have authorization to change the AssignedToId"] } });
+
+            if (!string.IsNullOrWhiteSpace(ticketUpdateDto.AssignedToId))
+            {
+                throw new BadRequestException(new Dictionary<string, string[]>() { { "AssignedToId", ["you do not have authorization to change the AssignedToId"] } });
+            }
+            else
+            {
+                ticketUpdateDto.AssignedToId = ticket.AssignedToId;
+            }
         }
 
         TicketHistory ticketHistory = new()

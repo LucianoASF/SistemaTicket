@@ -4,8 +4,8 @@ export interface TicketHistory {
   id: number;
   oldStatus?: TicketStatus;
   newStatus?: TicketStatus;
-  oldAssignedUserId?: string;
-  newAssignedUserId?: string;
+  oldAssignedToId?: string;
+  newAssignedToId?: string;
   oldAssignedUserName?: string;
   newAssignedUserName?: string;
   oldPriority?: TicketPriority;

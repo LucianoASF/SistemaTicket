@@ -17,7 +17,7 @@ import { cn } from '#lib/utils.ts';
 
 interface UserComboboxProps {
   users: User[];
-  value?: string;
+  value?: string | null;
   loading: boolean;
   searchQuery: string;
   onSelectChange: (userId: string | null) => void;
@@ -55,7 +55,7 @@ export function UserCombobox({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -107,9 +107,9 @@ export function UserCombobox({
                 value={user.id}
               >
                 <CustomAvatar name={user.name} />
-                <div className="flex flex-col gap-1">
-                  <div className="flex gap-2 items-center justify-center">
-                    <span>{user.name}</span>
+                <div className="flex flex-col gap-1 min-w-0">
+                  <div className="flex gap-2 items-center ">
+                    <span className="truncate">{user.name}</span>
                     <RoleBadge variant="small" role={user.role} />
                   </div>
                   <span className="text-sm text-muted-foreground">

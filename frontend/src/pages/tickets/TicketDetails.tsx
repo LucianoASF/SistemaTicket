@@ -9,7 +9,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs';
 import { Separator } from '#components/ui/separator';
@@ -33,6 +33,7 @@ import { ModalDelete } from '#components/modals/ModalDelete';
 import { useAuth } from '../../contexts/useAuth';
 import { USER_ROLE } from '../../types/role';
 import { Loading } from '#components/loadings/Loading';
+import { isAxiosError } from 'axios';
 
 const priorityConfig = {
   [TICKET_PRIORITY.LOW]: 'baixa',
@@ -60,13 +61,20 @@ export function TicketDetails() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState('');
   const [loading, setLoading] = useState(true);
+  const [statusError, setStatusError] = useState(0);
+  const tabsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchTicket = async () => {
       try {
         const response = await api.get<TicketDetails>(`/tickets/${id}`);
         setTicketDetails(response.data);
-      } catch {
+      } catch (error) {
+        if (isAxiosError(error)) {
+          setStatusError(error.response?.status || 500);
+        } else {
+          setStatusError(500);
+        }
         return;
       } finally {
         setLoading(false);
@@ -97,7 +105,7 @@ export function TicketDetails() {
           : ticket,
       );
       setMessage('');
-      document.getElementById('tabs')?.scrollIntoView({ behavior: 'smooth' });
+      tabsRef.current?.scrollIntoView({ behavior: 'smooth' });
       toast.success('Comentário adicionado com sucesso', {
         position: 'top-right',
       });
@@ -153,7 +161,21 @@ export function TicketDetails() {
     return <Loading variant="page" />;
   }
 
-  if (!ticketDetails) {
+  if (statusError === 403) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <h1 className="text-2xl font-bold text-destructive">Acesso Negado</h1>
+        <p className="mt-2 text-muted-foreground">
+          Você não tem permissão para visualizar este ticket.
+        </p>
+        <Button asChild className="mt-4">
+          <Link to="/tickets">Voltar para tickets</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  if (statusError === 404 || !ticketDetails) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <h1 className="text-2xl font-bold text-foreground">
@@ -168,9 +190,10 @@ export function TicketDetails() {
       </div>
     );
   }
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between">
         <div className="flex gap-4">
           <Button variant="ghost" size="icon" asChild>
             <Link to="/tickets">
@@ -188,14 +211,19 @@ export function TicketDetails() {
             <h1 className="text-2xl font-bold">{ticketDetails.ticket.title}</h1>
           </div>
         </div>
-        <div className="space-x-2">
-          <Button variant="outline" onClick={() => setIsModelEditOpen(true)}>
+        <div className="space-y-2 mt-2 sm:mt-0 sm:space-y-0 sm:space-x-2">
+          <Button
+            className="w-full sm:w-auto"
+            variant="outline"
+            onClick={() => setIsModelEditOpen(true)}
+          >
             <Edit className="h-4 w-4 mr-2" />
             Editar
           </Button>
           {(user?.role === USER_ROLE.ADMIN ||
             user?.id === ticketDetails.ticket.createdById) && (
             <Button
+              className="w-full sm:w-auto"
               variant="destructive"
               onClick={() => handleOpenDeleteTicket(Number(id))}
             >
@@ -216,7 +244,7 @@ export function TicketDetails() {
             </CardContent>
           </Card>
           <Card>
-            <Tabs defaultValue="comments" id="tabs">
+            <Tabs defaultValue="comments" ref={tabsRef}>
               <CardHeader>
                 <TabsList>
                   <TabsTrigger value="comments">
@@ -397,22 +425,24 @@ export function TicketDetails() {
                     </span>
                   </div>
                 </div>
-                <Separator />
                 {ticketDetails.ticket.assignedToName && (
-                  <div className="flex flex-col gap-1">
-                    <span className="text-muted-foreground text-sm font-medium">
-                      Atribuido para
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <CustomAvatar
-                        name={ticketDetails.ticket.assignedToName}
-                        secondary
-                      />
-                      <span className="text-sm">
-                        {ticketDetails.ticket.assignedToName}
+                  <>
+                    <Separator />
+                    <div className="flex flex-col gap-1">
+                      <span className="text-muted-foreground text-sm font-medium">
+                        Atribuido para
                       </span>
+                      <div className="flex items-center gap-2">
+                        <CustomAvatar
+                          name={ticketDetails.ticket.assignedToName}
+                          secondary
+                        />
+                        <span className="text-sm">
+                          {ticketDetails.ticket.assignedToName}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )}
                 <Separator />
                 <div className="flex flex-col gap-1">
@@ -423,17 +453,19 @@ export function TicketDetails() {
                     {formatDate(ticketDetails.ticket.createdAt)}
                   </span>
                 </div>
-                <Separator />
-                <div className="flex flex-col gap-1">
-                  <span className="text-muted-foreground text-sm font-medium">
-                    Atualizado em
-                  </span>
-                  {ticketDetails.ticketHistories.length > 0 && (
-                    <span className="text-sm">
-                      {formatDate(ticketDetails.ticketHistories[0].changedAt)}
-                    </span>
-                  )}
-                </div>
+                {ticketDetails.ticketHistories.length > 0 && (
+                  <>
+                    <Separator />
+                    <div className="flex flex-col gap-1">
+                      <span className="text-muted-foreground text-sm font-medium">
+                        Atualizado em
+                      </span>
+                      <span className="text-sm">
+                        {formatDate(ticketDetails.ticketHistories[0].changedAt)}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
