@@ -18,7 +18,7 @@ import {
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import type { PagedTickets } from '../types/ticket';
-import { api } from '#lib/axios.ts';
+import { api } from '../axios/axios';
 import { Loading } from '#components/loadings/Loading';
 
 export function Dashboard() {
@@ -35,11 +35,16 @@ export function Dashboard() {
 
   useEffect(() => {
     const fetchTickets = async () => {
-      const response = await api.get<PagedTickets>(
-        '/tickets?withStatusCounts=true',
-      );
-      setData(response.data);
-      setLoading(false);
+      try {
+        const response = await api.get<PagedTickets>(
+          '/tickets?withStatusCounts=true',
+        );
+        setData(response.data);
+      } catch {
+        return;
+      } finally {
+        setLoading(false);
+      }
     };
     fetchTickets();
   }, []);

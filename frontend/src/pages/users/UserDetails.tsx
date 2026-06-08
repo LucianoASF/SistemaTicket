@@ -17,7 +17,7 @@ import { StatusBadge } from '#components/badges/StatusBadge';
 import { PriorityBadge } from '#components/badges/PriorityBadge';
 import { Separator } from '#components/ui/separator';
 import { ModalUser } from '#components/modals/ModalUser';
-import { api } from '#lib/axios.ts';
+import { api } from '../../axios/axios';
 import type { UserWithTickets } from '../../types/user';
 import { RoleBadge } from '#components/badges/RoleBadge';
 import { cn, formatDate } from '#lib/utils.ts';
@@ -33,9 +33,13 @@ export function UserDetails() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await api.get<UserWithTickets>(`/users/${id}`);
-      setData(response.data);
-      setLoading(false);
+      try {
+        const response = await api.get<UserWithTickets>(`/users/${id}`);
+        setData(response.data);
+        setLoading(false);
+      } catch {
+        return;
+      }
     };
     fetchData();
   }, [id]);

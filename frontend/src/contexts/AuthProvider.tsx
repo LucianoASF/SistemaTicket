@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { UserLogin } from '../types/auth';
-import { api } from '#lib/axios.ts';
+import { api } from '../axios/axios';
 import { AuthContext } from './AuthContext';
 
 interface AuthProviderProps {
@@ -24,13 +24,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function login(email: string, password: string) {
-    await api.post('/auth/login', { email, password });
-    await loadUser();
+    try {
+      await api.post('/auth/login', { email, password });
+      await loadUser();
+    } catch {
+      return;
+    }
   }
 
   async function logout() {
-    await api.post('/auth/logout');
-    setUser(null);
+    try {
+      await api.post('/auth/logout');
+      setUser(null);
+    } catch {
+      return;
+    }
   }
 
   useEffect(() => {
@@ -44,6 +52,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     <AuthContext.Provider
       value={{
         user,
+        setUser,
         login,
         logout,
         isAuthenticated: !!user,

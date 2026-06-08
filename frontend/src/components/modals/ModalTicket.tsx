@@ -29,7 +29,7 @@ import {
 } from '../../schemas/modalTicketSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../../contexts/useAuth';
-import { api } from '#lib/axios.ts';
+import { api } from '../../axios/axios';
 import { toast } from 'sonner';
 import { USER_ROLE } from '../../types/role';
 import { UserCombobox } from '#components/UserCombobox';
@@ -127,19 +127,22 @@ export function ModalTicket({
       assignedToId: data.assignedToId,
     };
 
-    if (isEditing) {
-      const response = await api.patch<Ticket>(
-        `/tickets/${ticket.id}`,
-        dataToSend,
-      );
-      onSuccess(response.data);
+    try {
+      if (isEditing) {
+        const response = await api.patch<Ticket>(
+          `/tickets/${ticket.id}`,
+          dataToSend,
+        );
+        onSuccess(response.data);
+        toast.success('Ticket editado com sucesso', { position: 'top-right' });
+      } else {
+        const response = await api.post<Ticket>('/tickets', dataToSend);
+        onSuccess(response.data);
+        toast.success('Ticket criado com sucesso', { position: 'top-right' });
+      }
       handleCancel();
-      toast.success('Ticket editado com sucesso', { position: 'top-right' });
-    } else {
-      const response = await api.post<Ticket>('/tickets', dataToSend);
-      onSuccess(response.data);
-      handleCancel();
-      toast.success('Ticket criado com sucesso', { position: 'top-right' });
+    } catch {
+      return;
     }
   }
 

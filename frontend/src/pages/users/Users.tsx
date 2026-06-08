@@ -20,7 +20,7 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { CustomAvatar } from '#components/CustomAvatar';
 import { ModalUser } from '#components/modals/ModalUser';
-import { api } from '#lib/axios.ts';
+import { api } from '../../axios/axios';
 import type { PagedUsers } from '../../types/user';
 import {
   Select,
@@ -55,16 +55,21 @@ export function Users() {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const response = await api.get<PagedUsers>('/users', {
-        params: {
-          page: currentPage,
-          searchQuery: searchQuery || undefined,
-          role: roleFilter === 'all' ? undefined : roleFilter || undefined,
-          inactives: inactives === 'all' ? undefined : inactives || undefined,
-        },
-      });
-      setData(response.data);
-      setLoading(false);
+      try {
+        const response = await api.get<PagedUsers>('/users', {
+          params: {
+            page: currentPage,
+            searchQuery: searchQuery || undefined,
+            role: roleFilter === 'all' ? undefined : roleFilter || undefined,
+            inactives: inactives === 'all' ? undefined : inactives || undefined,
+          },
+        });
+        setData(response.data);
+      } catch {
+        return;
+      } finally {
+        setLoading(false);
+      }
     };
     fetchUsers();
   }, [currentPage, inactives, roleFilter, searchQuery]);

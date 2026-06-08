@@ -18,7 +18,7 @@ import { ModalTicket } from '#components/modals/ModalTicket';
 import { CustomAvatar } from '#components/CustomAvatar';
 import { StatusBadge } from '#components/badges/StatusBadge';
 import { PriorityBadge } from '#components/badges/PriorityBadge';
-import { api } from '#lib/axios.ts';
+import { api } from '../../axios/axios';
 import {
   TICKET_PRIORITY,
   TICKET_STATUS,
@@ -117,28 +117,36 @@ export function TicketDetails() {
   }
 
   async function deleteComment(commentId: number) {
-    await api.delete(`/tickets/${id}/ticket-comments/${commentId}`);
-    setTicketDetails((ticket) =>
-      ticket
-        ? {
-            ...ticket,
-            ticketComments: ticket.ticketComments.filter(
-              (comment) => comment.id !== commentId,
-            ),
-          }
-        : ticket,
-    );
-    toast.success('Comentário excluido com sucesso!', {
-      position: 'top-right',
-    });
+    try {
+      await api.delete(`/tickets/${id}/ticket-comments/${commentId}`);
+      setTicketDetails((ticket) =>
+        ticket
+          ? {
+              ...ticket,
+              ticketComments: ticket.ticketComments.filter(
+                (comment) => comment.id !== commentId,
+              ),
+            }
+          : ticket,
+      );
+      toast.success('Comentário excluido com sucesso!', {
+        position: 'top-right',
+      });
+    } catch {
+      return;
+    }
   }
 
   async function deleteTicket(ticketId: number) {
-    await api.delete(`/tickets/${ticketId}`);
-    navigate('/tickets');
-    toast.success('Ticket excluido com sucesso!', {
-      position: 'top-right',
-    });
+    try {
+      await api.delete(`/tickets/${ticketId}`);
+      navigate('/tickets');
+      toast.success('Ticket excluido com sucesso!', {
+        position: 'top-right',
+      });
+    } catch {
+      return;
+    }
   }
 
   const handleOpenDeleteTicket = (ticketId: number) => {

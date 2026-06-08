@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '#components/ui/table';
-import { api } from '#lib/axios.ts';
+import { api } from '../../axios/axios';
 import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';

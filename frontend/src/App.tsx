@@ -11,28 +11,34 @@ import { PrivateRoute } from './routes/PrivateRoute';
 import { PublicRoute } from './routes/PublicRoute';
 import { NotFound } from './pages/NotFound';
 import { Toaster } from '#components/ui/sonner';
+import { AxiosInterceptor } from './axios/AxiosInterceptor';
 
 export function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          <Route element={<PublicRoute />}>
-            <Route path="/login" element={<Login />} />
-          </Route>
-          <Route element={<PrivateRoute />}>
-            <Route element={<AppLayout />}>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/tickets" element={<Tickets />} />
-              <Route path="/tickets/:id" element={<TicketDetails />} />
-              <Route path="/users" element={<Users />} />
-              <Route path="/users/:id" element={<UserDetails />} />
+        <AxiosInterceptor>
+          <Routes>
+            <Route element={<PublicRoute />}>
+              <Route path="/login" element={<Login />} />
             </Route>
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Toaster />
+            <Route element={<PrivateRoute />}>
+              <Route element={<AppLayout />}>
+                <Route
+                  path="/"
+                  element={<Navigate to="/dashboard" replace />}
+                />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/tickets" element={<Tickets />} />
+                <Route path="/tickets/:id" element={<TicketDetails />} />
+                <Route path="/users" element={<Users />} />
+                <Route path="/users/:id" element={<UserDetails />} />
+              </Route>
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <Toaster />
+        </AxiosInterceptor>
       </BrowserRouter>
     </AuthProvider>
   );

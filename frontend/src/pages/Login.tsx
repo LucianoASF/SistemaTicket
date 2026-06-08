@@ -9,13 +9,12 @@ import {
 import { Input } from '#components/ui/input';
 import { Label } from '#components/ui/label';
 import { Eye, EyeOff, Ticket } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../contexts/useAuth';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Field, FieldError, FieldGroup } from '#components/ui/field';
-import { toast } from 'sonner';
 
 const loginSchema = z.object({
   email: z
@@ -48,14 +47,6 @@ export function Login() {
   const onSubmit = async (data: LoginFormInputs) => {
     await login(data.email, data.password);
   };
-
-  useEffect(() => {
-    const sessionExpired = sessionStorage.getItem('sessionExpired');
-    if (sessionExpired) {
-      toast.error('Sua sessão expirou', { position: 'top-right' });
-      sessionStorage.removeItem('sessionExpired');
-    }
-  }, []);
 
   return (
     <main className="h-screen flex items-center justify-center">
