@@ -42,7 +42,9 @@ public class TicketRepository : ITicketRepository
             Priority = t.Priority,
             CreatedAt = t.CreatedAt,
             CreatedById = t.CreatedById,
-            CreatedByName = t.CreatedBy.Name
+            CreatedByName = t.CreatedBy.Name,
+            AssignedToId = t.AssignedToId,
+            AssignedToName = t.AssignedTo != null ? t.AssignedTo.Name : null,
         });
 
         var tickets = await dtoQuery

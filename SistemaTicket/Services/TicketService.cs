@@ -73,26 +73,11 @@ public class TicketService : ITicketService
     {
         page = page < 1 ? 1 : page;
         var response = await _ticketRepository.GetAllAsync(page, searchQuery, status, priority, withStatusCounts);
-        List<TicketResponseDto> tickets = new();
 
-        foreach (var ticket in response.Tickets)
-        {
-            tickets.Add(new TicketResponseDto
-            {
-                Id = ticket.Id,
-                Title = ticket.Title,
-                Description = ticket.Description,
-                Status = ticket.Status,
-                Priority = ticket.Priority,
-                CreatedAt = ticket.CreatedAt,
-                CreatedById = ticket.CreatedById,
-                CreatedByName = ticket.CreatedByName,
-            });
-        }
 
         return new PagedTicketsResponseDto
         {
-            Tickets = tickets,
+            Tickets = response.Tickets,
             Total = response.Total,
             StatusCounts = withStatusCounts == true && response.StatusCounts != null ? new StatusCountsDto
             {
