@@ -362,7 +362,7 @@ export function TicketDetails() {
                           {th.oldAssignedUserName &&
                             !th.newAssignedUserName && (
                               <span>
-                                O(A) {th.newAssignedUserName} não esta mais
+                                O(A) {th.oldAssignedUserName} não esta mais
                                 atribuído no ticket
                               </span>
                             )}
@@ -483,10 +483,8 @@ export function TicketDetails() {
         open={isModelEditOpen}
         onOpenChange={setIsModelEditOpen}
         ticket={ticketDetails.ticket}
-        onSuccess={(updatedTicket) =>
-          setTicketDetails((details) =>
-            details ? { ...details, ticket: updatedTicket } : details,
-          )
+        onSuccess={(updatedTicketDetails) =>
+          setTicketDetails(updatedTicketDetails as TicketDetails)
         }
       />
       <ModalDelete

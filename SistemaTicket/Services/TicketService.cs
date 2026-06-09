@@ -103,7 +103,7 @@ public class TicketService : ITicketService
         };
     }
 
-    public async Task<TicketResponseDto> UpdateAsync(int id, string userId, UserRole role, TicketUpdateDto ticketUpdateDto)
+    public async Task<TicketDetailsResponseDto> UpdateAsync(int id, string userId, UserRole role, TicketUpdateDto ticketUpdateDto)
     {
         var ticket = await GetTicketOrThrowAsync(id, userId, role);
 
@@ -181,19 +181,13 @@ public class TicketService : ITicketService
         await _ticketRepository.SaveAsync();
 
 
-        return new TicketResponseDto
+        var ticketDetails = await _ticketRepository.GetDetailsByIdAsync(id);
+
+        if (ticketDetails == null)
         {
-            Id = ticket.Id,
-            Title = ticket.Title,
-            Description = ticket.Description,
-            Status = ticket.Status,
-            Priority = ticket.Priority,
-            CreatedAt = ticket.CreatedAt,
-            CreatedById = ticket.CreatedById,
-            CreatedByName = ticket.CreatedBy.Name,
-            AssignedToId = ticket.AssignedToId,
-            AssignedToName = assignedToName
-        };
+            throw new NotFoundException("ticket not found");
+        }
+        return ticketDetails;
     }
     public async Task DeleteAsync(int id, string userId, UserRole role)
     {

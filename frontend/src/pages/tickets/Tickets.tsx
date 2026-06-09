@@ -246,7 +246,7 @@ export function Tickets() {
       <ModalTicket
         open={isModelOpen}
         onOpenChange={setIsModelOpen}
-        onSuccess={(ticket) => handleTicketCreate(ticket)}
+        onSuccess={(ticket) => handleTicketCreate(ticket as Ticket)}
       />
     </div>
   );

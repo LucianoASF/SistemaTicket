@@ -22,6 +22,7 @@ import {
   TICKET_PRIORITY,
   TICKET_STATUS,
   type Ticket,
+  type TicketDetails,
 } from '../../types/ticket';
 import {
   type ModalTicketFormInputs,
@@ -40,7 +41,7 @@ interface ModalTicketProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   ticket?: Ticket;
-  onSuccess: (ticket: Ticket) => void;
+  onSuccess: (ticket: Ticket | TicketDetails) => void;
 }
 
 export function ModalTicket({
@@ -129,7 +130,7 @@ export function ModalTicket({
 
     try {
       if (isEditing) {
-        const response = await api.patch<Ticket>(
+        const response = await api.patch<TicketDetails>(
           `/tickets/${ticket.id}`,
           dataToSend,
         );

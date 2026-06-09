@@ -56,7 +56,7 @@ public class TicketController : AuthorizedApiControllerBase
 
     [Authorize]
     [HttpPatch("{id}")]
-    public async Task<ActionResult<TicketResponseDto>> UpdateAsync(int id, TicketUpdateDto dto)
+    public async Task<ActionResult<TicketDetailsResponseDto>> UpdateAsync(int id, TicketUpdateDto dto)
     {
         var userId = CurrentUserId;
         var role = CurrentUserRole;
