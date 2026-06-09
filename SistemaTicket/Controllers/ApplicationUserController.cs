@@ -4,13 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using SistemaTicket.Dtos.ApplicationUser;
 using SistemaTicket.Enums;
 using SistemaTicket.Services;
-using System.Security.Claims;
 
 namespace SistemaTicket.Controllers;
 
 [Route("api/users")]
 [ApiController]
-public class ApplicationUserController : ControllerBase
+public class ApplicationUserController : AuthorizedApiControllerBase
 {
     private readonly IApplicationUserService _applicationUserService;
 
@@ -37,8 +36,8 @@ public class ApplicationUserController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ApplicationUserWithTicketsResponseDto>> GetUserWithTicketsByIdAsync(string id)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var isUser = User.IsInRole(nameof(UserRole.User));
+        var userId = CurrentUserId;
+        var isUser = IsUser;
         if (isUser && userId != id)
         {
             return Forbid();
@@ -50,8 +49,8 @@ public class ApplicationUserController : ControllerBase
     [HttpPatch("{id}")]
     public async Task<ActionResult<ApplicationUserResponseDto>> UpdateAsync(string id, ApplicationUserUpdateDto dto)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var isAdmin = User.IsInRole(nameof(UserRole.Admin));
+        var userId = CurrentUserId;
+        var isAdmin = IsAdmin;
 
         if (!isAdmin && userId != id)
         {
@@ -64,8 +63,8 @@ public class ApplicationUserController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteAsync(string id)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var isAdmin = User.IsInRole(nameof(UserRole.Admin));
+        var userId = CurrentUserId;
+        var isAdmin = IsAdmin;
 
         if (!isAdmin && userId != id)
         {
