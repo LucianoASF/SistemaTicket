@@ -50,7 +50,7 @@ export function Dashboard() {
   }, []);
 
   if (loading) {
-    <Loading />;
+    return <Loading variant="page" />;
   }
 
   const dataCards = [
