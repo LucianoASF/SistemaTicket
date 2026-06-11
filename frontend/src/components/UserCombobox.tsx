@@ -66,9 +66,9 @@ export function UserCombobox({
         >
           {selectedUser ? (
             <div className="flex items-center w-full justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <CustomAvatar name={selectedUser.name} />
-                <span>{selectedUser.name}</span>
+                <span className="truncate">{selectedUser.name}</span>
               </div>
 
               <div className="flex items-center gap-1">
