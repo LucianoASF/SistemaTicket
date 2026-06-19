@@ -37,8 +37,8 @@ public class ApplicationUserController : AuthorizedApiControllerBase
     public async Task<ActionResult<ApplicationUserWithTicketsResponseDto>> GetUserWithTicketsByIdAsync(string id)
     {
         var userId = CurrentUserId;
-        var isUser = IsUser;
-        if (isUser && userId != id)
+        var isAdmin = IsAdmin;
+        if (!isAdmin && userId != id)
         {
             return Forbid();
         }
