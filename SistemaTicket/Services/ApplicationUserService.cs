@@ -331,7 +331,117 @@ public class ApplicationUserService : IApplicationUserService
                 IsActive = u.IsActive,
             })
             .ToListAsync();
+    }
 
+    public async Task<List<ApplicationUserResponseDto>> GetTicketRelatedUsersCreatorsAsync
+        (string userId, UserRole role, string? searchQueryUsers, string? searchQueryTickets,
+        TicketStatus? status, TicketPriority? priority, string? assignedToId)
+    {
 
+        if (role == UserRole.Support && userId != assignedToId)
+        {
+            throw new BadRequestException(new Dictionary<string, string[]>() { { "assignedToId", ["you do not have authorization to view other users' tickets "] } });
+        }
+
+        bool isAdmin = role == UserRole.Admin;
+        List<ApplicationUserResponseDto>? users = null;
+
+        var query = _userManager.Users.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(searchQueryUsers))
+        {
+            query = query.Where(u => u.Name.Contains(searchQueryUsers) || u.Email!.Contains(searchQueryUsers));
+        }
+
+        if (!string.IsNullOrWhiteSpace(assignedToId))
+        {
+            users = await query.Where(u => u.CreatedTickets
+            .Any(t =>
+            t.AssignedToId == assignedToId
+            && (string.IsNullOrEmpty(searchQueryTickets) || (t.Title.Contains(searchQueryTickets) || t.Id.ToString().Contains(searchQueryTickets)))
+            && (!status.HasValue || t.Status == status.Value)
+            && (!priority.HasValue || t.Priority == priority.Value)
+            )).Select(u => new ApplicationUserResponseDto
+            {
+                Id = u.Id,
+                Email = u.Email!,
+                Name = u.Name,
+                Role = u.Role,
+                CreatedAt = u.CreatedAt,
+                IsActive = u.IsActive,
+            }).Distinct().ToListAsync();
+        }
+
+        else
+        {
+            users = await query.Select(u => new ApplicationUserResponseDto
+            {
+                Id = u.Id,
+                Email = u.Email!,
+                Name = u.Name,
+                Role = u.Role,
+                CreatedAt = u.CreatedAt,
+                IsActive = u.IsActive,
+            }).Distinct().ToListAsync();
+
+        }
+        return users;
+    }
+
+    public async Task<List<ApplicationUserResponseDto>> GetTicketRelatedUsersAssignedsAsync
+        (string userId, UserRole role, string? searchQueryUsers, string? searchQueryTickets,
+        TicketStatus? status, TicketPriority? priority, string? createdById)
+    {
+        if (role == UserRole.User && userId != createdById)
+        {
+            throw new BadRequestException(new Dictionary<string, string[]>() { { "createdById", ["you do not have authorization to view other users' tickets "] } });
+        }
+        else if (role == UserRole.Support && userId != createdById)
+        {
+            throw new BadRequestException(new Dictionary<string, string[]>() { { "createdById", ["you do not have authorization to view other users' tickets "] } });
+        }
+
+        bool isAdmin = role == UserRole.Admin;
+        List<ApplicationUserResponseDto>? users = null;
+
+        var query = _userManager.Users.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(searchQueryUsers))
+        {
+            query = query.Where(u => u.Name.Contains(searchQueryUsers) || u.Email!.Contains(searchQueryUsers));
+        }
+        if (!string.IsNullOrWhiteSpace(createdById))
+        {
+            users = await query.Where(u => u.AssignedTickets
+            .Any(t =>
+            t.CreatedById == createdById
+            && (string.IsNullOrEmpty(searchQueryTickets) || (t.Title.Contains(searchQueryTickets) || t.Id.ToString().Contains(searchQueryTickets)))
+            && (!status.HasValue || t.Status == status.Value)
+            && (!priority.HasValue || t.Priority == priority.Value)
+            )).Select(u => new ApplicationUserResponseDto
+            {
+                Id = u.Id,
+                Email = u.Email!,
+                Name = u.Name,
+                Role = u.Role,
+                CreatedAt = u.CreatedAt,
+                IsActive = u.IsActive,
+
+            }).Distinct().ToListAsync();
+        }
+
+        else
+        {
+            users = await query.Select(u => new ApplicationUserResponseDto
+            {
+                Id = u.Id,
+                Email = u.Email!,
+                Name = u.Name,
+                Role = u.Role,
+                CreatedAt = u.CreatedAt,
+                IsActive = u.IsActive,
+            }).Distinct().ToListAsync();
+        }
+        return users;
     }
 }

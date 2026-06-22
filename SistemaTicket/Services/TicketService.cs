@@ -68,23 +68,24 @@ public class TicketService : ITicketService
         };
     }
 
-    public async Task<PagedTicketsResponseDto> GetAllAsync(int page, string? searchQuery,
-        TicketStatus? status, TicketPriority? priority, bool? withStatusCounts)
+    public async Task<PagedTicketsResponseDto> GetFilteredTicketsAsync(string userId, UserRole role, int page, string? searchQueryTickets,
+        string? searchQueryUsers, TicketStatus? status, TicketPriority? priority, bool? withStatusCounts, string? createdById, string? assignedToId)
     {
-        page = page < 1 ? 1 : page;
-        var response = await _ticketRepository.GetAllAsync(page, searchQuery, status, priority, withStatusCounts);
 
+
+        page = page < 1 ? 1 : page;
+        var filteredTickets = await _ticketRepository.GetFilteredTicketsAsync(page, searchQueryTickets, status, priority, withStatusCounts, createdById, assignedToId);
 
         return new PagedTicketsResponseDto
         {
-            Tickets = response.Tickets,
-            Total = response.Total,
-            StatusCounts = withStatusCounts == true && response.StatusCounts != null ? new StatusCountsDto
+            Tickets = filteredTickets.Tickets,
+            Total = filteredTickets.Total,
+            StatusCounts = withStatusCounts == true && filteredTickets.StatusCounts != null ? new StatusCountsDto
             {
-                Open = response.StatusCounts.Open,
-                InProgress = response.StatusCounts.InProgress,
-                Closed = response.StatusCounts.Closed
-            } : null
+                Open = filteredTickets.StatusCounts.Open,
+                InProgress = filteredTickets.StatusCounts.InProgress,
+                Closed = filteredTickets.StatusCounts.Closed
+            } : null,
         };
     }
 

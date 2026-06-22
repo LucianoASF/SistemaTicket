@@ -20,7 +20,7 @@ import {
 } from '#components/ui/table';
 import { api } from '../../axios/axios';
 import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import {
   TICKET_PRIORITY,
@@ -32,6 +32,9 @@ import {
 } from '../../types/ticket';
 import { UseUpdateParams } from '#hooks/useUpdateParams';
 import { Loading } from '#components/loadings/Loading';
+import { UserCombobox } from '#components/UserCombobox';
+import { useUserSearch } from '#hooks/useUserSearch';
+import type { Params } from '../../types/params';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -44,8 +47,42 @@ export function Tickets() {
   const searchQuery = searchParams.get('querySearch') || '';
   const statusFilter = searchParams.get('status') || 'all';
   const priorityFilter = searchParams.get('priority') || 'all';
+  const createdById = searchParams.get('createdById') || '';
+  const assignedToId = searchParams.get('assignedToId') || '';
 
   const [inputValue, setInputValue] = useState(searchQuery);
+
+  const params = useMemo<Params>(
+    () => ({
+      searchQueryTickets: searchQuery || undefined,
+      status: statusFilter === 'all' ? undefined : statusFilter,
+      priority: priorityFilter === 'all' ? undefined : priorityFilter,
+      createdById: createdById || undefined,
+      assignedToId: assignedToId || undefined,
+    }),
+    [searchQuery, statusFilter, priorityFilter, createdById, assignedToId],
+  );
+
+  const {
+    loading: loadingUsersCreators,
+    searchQuery: searchQueryUsersCreators,
+    setSearchQuery: setSearchQueryUsersCreators,
+    users: UsersCreators,
+  } = useUserSearch(
+    '/users/ticket-related-users-creators',
+    'searchQueryUsers',
+    params,
+  );
+  const {
+    loading: loadingUsersAssigneds,
+    searchQuery: searchQueryUsersAssigneds,
+    setSearchQuery: setSearchQueryUsersAssigneds,
+    users: UsersAssigneds,
+  } = useUserSearch(
+    '/users/ticket-related-users-assigneds',
+    'searchQueryUsers',
+    params,
+  );
 
   const [loading, setLoading] = useState(true);
   const [isModelOpen, setIsModelOpen] = useState(false);
@@ -59,6 +96,8 @@ export function Tickets() {
             searchQuery: searchQuery || undefined,
             status: statusFilter === 'all' ? undefined : statusFilter,
             priority: priorityFilter === 'all' ? undefined : priorityFilter,
+            createdById: createdById || undefined,
+            assignedToId: assignedToId || undefined,
           },
         });
         setTickets(request.data.tickets);
@@ -70,7 +109,16 @@ export function Tickets() {
       }
     };
     fetchTickets();
-  }, [currentPage, statusFilter, priorityFilter, searchQuery]);
+  }, [
+    currentPage,
+    statusFilter,
+    priorityFilter,
+    searchQuery,
+    createdById,
+    assignedToId,
+  ]);
+
+  // console.log(UsersCreators);
 
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
@@ -108,7 +156,7 @@ export function Tickets() {
           Novo Ticket
         </Button>
       </div>
-      <div className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 md:flex-row md:items-center">
+      <div className="flex flex-col  gap-4 rounded-lg border border-border bg-card p-4 ">
         <div className="relative flex-1">
           <Search className="h-4 w-4 text-muted-foreground absolute top-1/2 left-5 -translate-1/2" />
           <Input
@@ -118,14 +166,41 @@ export function Tickets() {
             onChange={(e) => setInputValue(e.target.value)}
           />
         </div>
-        <div className="flex gap-3 min-w-0">
+        <div className="grid md:grid-cols-4 gap-4 min-w-0">
+          <UserCombobox
+            loading={loadingUsersCreators}
+            searchQuery={searchQueryUsersCreators}
+            setSearchQuery={setSearchQueryUsersCreators}
+            users={UsersCreators}
+            value={createdById}
+            onSelectChange={(userId) =>
+              updateParams({
+                createdById: userId ?? '',
+                page: '1',
+              })
+            }
+          />
+          <UserCombobox
+            loading={loadingUsersAssigneds}
+            searchQuery={searchQueryUsersAssigneds}
+            setSearchQuery={setSearchQueryUsersAssigneds}
+            users={UsersAssigneds}
+            value={assignedToId}
+            onSelectChange={(userId) =>
+              updateParams({
+                assignedToId: userId ?? '',
+                page: '1',
+              })
+            }
+          />
+
           <Select
             value={statusFilter}
             onValueChange={(v: TicketStatus | 'all') => {
               updateParams({ status: v, page: '1' });
             }}
           >
-            <SelectTrigger className="flex-1 truncate md:min-w-50">
+            <SelectTrigger className="truncate w-full">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -143,7 +218,7 @@ export function Tickets() {
               updateParams({ priority: v, page: '1' })
             }
           >
-            <SelectTrigger className="flex-1 truncate md:min-w-50">
+            <SelectTrigger className="w-full truncate">
               <SelectValue placeholder="Prioridade" />
             </SelectTrigger>
             <SelectContent>

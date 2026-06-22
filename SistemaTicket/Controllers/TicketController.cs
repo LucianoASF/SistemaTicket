@@ -37,12 +37,14 @@ public class TicketController : AuthorizedApiControllerBase
         return CreatedAtAction("GetDetailsById", new { id = result.Id }, result);
     }
 
-    [Authorize(Roles = nameof(UserRole.Admin))]
+    [Authorize]
     [HttpGet]
-    public async Task<ActionResult<PagedTicketsResponseDto>> GetAllAsync(int page,
-        string? searchQuery, TicketStatus? status, TicketPriority? priority, bool? withStatusCounts)
+    public async Task<ActionResult<PagedTicketsResponseDto>> GetFilteredTicketsAsync(int page,
+        string? searchQueryTickets, string? searchQueryUsers, TicketStatus? status, TicketPriority? priority, bool? withStatusCounts, string? createdById, string? assignedToId)
     {
-        return Ok(await _ticketService.GetAllAsync(page, searchQuery, status, priority, withStatusCounts));
+        var userId = CurrentUserId;
+        var role = CurrentUserRole;
+        return Ok(await _ticketService.GetFilteredTicketsAsync(userId, role, page, searchQueryTickets, searchQueryUsers, status, priority, withStatusCounts, createdById, assignedToId));
     }
 
     [Authorize]

@@ -12,4 +12,10 @@ public interface IApplicationUserService
     Task<ApplicationUserResponseDto> UpdateAsync(string id, ApplicationUserUpdateDto applicationUserUpdateDto, bool isAdmin);
     Task DeleteAsync(string id);
     Task<List<ApplicationUserResponseDto>> GetOptionsAsync(string? searchQuery);
+    Task<List<ApplicationUserResponseDto>> GetTicketRelatedUsersCreatorsAsync
+         (string userId, UserRole role, string? searchQueryUsers, string? searchQueryTickets,
+         TicketStatus? status, TicketPriority? priority, string? assignedToId);
+    Task<List<ApplicationUserResponseDto>> GetTicketRelatedUsersAssignedsAsync
+       (string userId, UserRole role, string? searchQueryUsers, string? searchQueryTickets,
+       TicketStatus? status, TicketPriority? priority, string? createdById);
 }

@@ -33,17 +33,23 @@ export function UserCombobox({
   setSearchQuery,
 }: UserComboboxProps) {
   const [open, setOpen] = useState(false);
-  const [selectedUser, SetSelectedUser] = useState<User | null>(
-    users.find((u) => u.id === value) || null,
-  );
+  const selectedUser = users.find((u) => u.id === value) || null;
 
+  if (value) {
+    console.log('createdbyid');
+    console.log(users);
+    console.log(selectedUser);
+    console.log(value);
+  } else if (!value) {
+    console.log('sem');
+    console.log(users);
+    console.log(selectedUser);
+  }
   function handleSelect(userId: string) {
     if (userId === value) {
       onSelectChange(null);
-      SetSelectedUser(null);
     } else {
       onSelectChange(userId);
-      SetSelectedUser(users.find((u) => u.id === userId) || null);
     }
     setOpen(false);
   }
@@ -51,7 +57,6 @@ export function UserCombobox({
   function handleClear(e: React.MouseEvent) {
     e.stopPropagation();
     onSelectChange(null);
-    SetSelectedUser(null);
   }
 
   return (

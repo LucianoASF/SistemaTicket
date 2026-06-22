@@ -23,13 +23,16 @@ public class TicketRepository : ITicketRepository
         return ticket;
     }
 
-    public async Task<(List<TicketResponseDto> Tickets, int Total, StatusCountsDto? StatusCounts)> GetAllAsync
-        (int page, string? searchQuery, TicketStatus? status, TicketPriority? priority, bool? withStatusCounts)
+    public async Task<(List<TicketResponseDto> Tickets, int Total, StatusCountsDto? StatusCounts)> GetFilteredTicketsAsync
+        (int page, string? searchQuery, TicketStatus? status,
+        TicketPriority? priority, bool? withStatusCounts, string? createdById, string? assignedToId)
     {
         var query = _context.Tickets.AsNoTracking()
             .Where(t => (string.IsNullOrEmpty(searchQuery) || (t.Title.Contains(searchQuery) || t.Id.ToString().Contains(searchQuery)))
             && (!status.HasValue || t.Status == status.Value)
-            && (!priority.HasValue || t.Priority == priority.Value));
+            && (!priority.HasValue || t.Priority == priority.Value)
+            && (string.IsNullOrEmpty(createdById) || t.CreatedById == createdById)
+            && (string.IsNullOrEmpty(assignedToId) || t.AssignedToId == assignedToId));
 
         IQueryable<TicketResponseDto> dtoQuery;
 
@@ -55,6 +58,8 @@ public class TicketRepository : ITicketRepository
 
         int total = await dtoQuery.CountAsync();
 
+        StatusCountsDto? statusCounts = null;
+
         if (withStatusCounts == true)
         {
             var groupedStatus = await query
@@ -64,18 +69,16 @@ public class TicketRepository : ITicketRepository
                     g => g.Count()
         );
 
-            var statusCounts = new StatusCountsDto
+            statusCounts = new StatusCountsDto
             {
                 Open = groupedStatus.GetValueOrDefault("open"),
                 InProgress = groupedStatus.GetValueOrDefault("inprogress"),
                 Closed = groupedStatus.GetValueOrDefault("closed")
             };
 
-
-
-            return (tickets, total, statusCounts);
         }
-        return (tickets, total, null);
+
+        return (tickets, total, statusCounts);
     }
 
     public async Task<Ticket?> GetByIdAsync(int id)

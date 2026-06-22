@@ -80,4 +80,25 @@ public class ApplicationUserController : AuthorizedApiControllerBase
     {
         return Ok(await _applicationUserService.GetOptionsAsync(searchQuery));
     }
+
+    [Authorize]
+    [HttpGet("ticket-related-users-creators")]
+    public async Task<ActionResult<List<ApplicationUserResponseDto>>> GetTicketRelatedUsersCreatorsAsync(
+        string? searchQueryUsers, string? searchQueryTickets, TicketStatus? status, TicketPriority? priority, string? assignedToId)
+    {
+        var userId = CurrentUserId;
+        var role = CurrentUserRole;
+        var result = await _applicationUserService.GetTicketRelatedUsersCreatorsAsync(userId, role, searchQueryUsers, searchQueryTickets, status, priority, assignedToId);
+        return Ok(result);
+    }
+    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Support)}")]
+    [HttpGet("ticket-related-users-assigneds")]
+    public async Task<ActionResult<List<ApplicationUserResponseDto>>> GetTicketRelatedUsersAssignedsAsync(
+        string? searchQueryUsers, string? searchQueryTickets, TicketStatus? status, TicketPriority? priority, string? createdById)
+    {
+        var userId = CurrentUserId;
+        var role = CurrentUserRole;
+        var result = await _applicationUserService.GetTicketRelatedUsersAssignedsAsync(userId, role, searchQueryUsers, searchQueryTickets, status, priority, createdById);
+        return Ok(result);
+    }
 }

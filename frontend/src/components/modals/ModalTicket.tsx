@@ -34,8 +34,7 @@ import { api } from '../../axios/axios';
 import { toast } from 'sonner';
 import { USER_ROLE } from '../../types/role';
 import { UserCombobox } from '#components/UserCombobox';
-import { useEffect, useState } from 'react';
-import type { User } from '../../types/user';
+import { useUserSearch } from '#hooks/useUserSearch';
 
 interface ModalTicketProps {
   open: boolean;
@@ -50,8 +49,9 @@ export function ModalTicket({
   ticket,
   onSuccess,
 }: ModalTicketProps) {
-  const [users, setUsers] = useState<User[]>([]);
   const isEditing = !!ticket;
+  const { loading, searchQuery, setSearchQuery, users } =
+    useUserSearch('/users/options');
   const { user } = useAuth();
   const {
     register,
@@ -63,28 +63,6 @@ export function ModalTicket({
     resolver: zodResolver(modalTicketSchema),
     values: setValues(),
   });
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        if (user?.role !== USER_ROLE.ADMIN) return;
-        setLoading(true);
-        const response = await api.get<User[]>('/users/options', {
-          params: {
-            searchQuery: searchQuery || undefined,
-          },
-        });
-        setUsers(response.data);
-      } catch {
-        return;
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUsers();
-  }, [searchQuery, user?.role]);
 
   function setValues() {
     const baseValues = {
