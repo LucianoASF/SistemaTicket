@@ -35,20 +35,36 @@ import { Loading } from '#components/loadings/Loading';
 import { UserCombobox } from '#components/UserCombobox';
 import { useUserSearch } from '#hooks/useUserSearch';
 import type { Params } from '../../types/params';
+import { useAuth } from '../../contexts/useAuth';
+import { USER_ROLE } from '../../types/role';
 
 const ITEMS_PER_PAGE = 5;
 
 export function Tickets() {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [total, setTotal] = useState(0);
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [loading, setLoading] = useState(true);
+  const updateParams = UseUpdateParams({ setLoading, setSearchParams });
+  const [isModelOpen, setIsModelOpen] = useState(false);
 
-  const currentPage = Number(searchParams.get('page') || 1);
-  const searchQuery = searchParams.get('querySearch') || '';
-  const statusFilter = searchParams.get('status') || 'all';
-  const priorityFilter = searchParams.get('priority') || 'all';
   const createdById = searchParams.get('createdById') || '';
   const assignedToId = searchParams.get('assignedToId') || '';
+
+  useEffect(() => {
+    if (user?.role === USER_ROLE.USER) {
+      if (!createdById) {
+        updateParams({ createdById: user.id, page: '1' });
+      }
+    }
+  });
+
+  const currentPage = Number(searchParams.get('page') || 1);
+  const searchQuery = searchParams.get('searchQuery') || '';
+  const statusFilter = searchParams.get('status') || 'all';
+  const priorityFilter = searchParams.get('priority') || 'all';
+
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [total, setTotal] = useState(0);
 
   const [inputValue, setInputValue] = useState(searchQuery);
 
@@ -63,15 +79,89 @@ export function Tickets() {
     [searchQuery, statusFilter, priorityFilter, createdById, assignedToId],
   );
 
+  const userSearchParamsCreated = useMemo(() => {
+    if (!user) return undefined;
+
+    // ADMIN
+    if (user.role === USER_ROLE.ADMIN) {
+      return {
+        ...params,
+        createdById: createdById || undefined,
+        assignedToId: assignedToId || undefined,
+      };
+    }
+
+    // USER
+    if (user.role === USER_ROLE.USER) {
+      return {
+        ...params,
+        createdById: createdById || user.id,
+        assignedToId: undefined,
+      };
+    }
+
+    // SUPPORT
+    return !assignedToId || assignedToId === user.id
+      ? {
+          ...params,
+          createdById: createdById ? createdById : undefined,
+          assignedToId: assignedToId
+            ? assignedToId
+            : !createdById && !assignedToId
+              ? user.id
+              : undefined,
+        }
+      : params;
+  }, [params, user, createdById, assignedToId]);
+
+  const userSearchParamsAssigned = useMemo(() => {
+    if (!user) return undefined;
+
+    // ADMIN
+    if (user.role === USER_ROLE.ADMIN) {
+      return {
+        ...params,
+        createdById: createdById || undefined,
+        assignedToId: assignedToId || undefined,
+      };
+    }
+
+    // USER
+    if (user.role === USER_ROLE.USER) {
+      return {
+        ...params,
+        createdById: createdById || user.id,
+        assignedToId: undefined,
+      };
+    }
+
+    // SUPPORT
+    return !createdById || createdById === user.id
+      ? {
+          ...params,
+          assignedToId: assignedToId ? assignedToId : undefined,
+          createdById: createdById
+            ? createdById
+            : !assignedToId && !createdById
+              ? user.id
+              : undefined,
+        }
+      : params;
+  }, [params, user, createdById, assignedToId]);
+
   const {
     loading: loadingUsersCreators,
     searchQuery: searchQueryUsersCreators,
     setSearchQuery: setSearchQueryUsersCreators,
     users: UsersCreators,
   } = useUserSearch(
-    '/users/ticket-related-users-creators',
+    createdById
+      ? `/users/${createdById}`
+      : '/users/ticket-related-users-creators',
     'searchQueryUsers',
-    params,
+    userSearchParamsCreated,
+    'createdById',
+    setSearchParams,
   );
   const {
     loading: loadingUsersAssigneds,
@@ -79,17 +169,28 @@ export function Tickets() {
     setSearchQuery: setSearchQueryUsersAssigneds,
     users: UsersAssigneds,
   } = useUserSearch(
-    '/users/ticket-related-users-assigneds',
+    assignedToId
+      ? `/users/${assignedToId}`
+      : '/users/ticket-related-users-assigneds',
     'searchQueryUsers',
-    params,
+    userSearchParamsAssigned,
+    'assignedToId',
+    setSearchParams,
   );
-
-  const [loading, setLoading] = useState(true);
-  const [isModelOpen, setIsModelOpen] = useState(false);
 
   useEffect(() => {
     const fetchTickets = async () => {
       try {
+        if (
+          (user?.role !== USER_ROLE.ADMIN &&
+            assignedToId &&
+            assignedToId !== user?.id &&
+            createdById &&
+            createdById !== user?.id) ||
+          (user?.role === USER_ROLE.USER && !createdById)
+        ) {
+          return;
+        }
         const request = await api.get<PagedTickets>('/tickets', {
           params: {
             page: currentPage,
@@ -103,7 +204,7 @@ export function Tickets() {
         setTickets(request.data.tickets);
         setTotal(request.data.total);
       } catch {
-        return;
+        setSearchParams(new URLSearchParams());
       } finally {
         setLoading(false);
       }
@@ -116,14 +217,29 @@ export function Tickets() {
     searchQuery,
     createdById,
     assignedToId,
+    user?.role,
+    user?.id,
+    setSearchParams,
   ]);
-
-  // console.log(UsersCreators);
 
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
-  const updateParams = UseUpdateParams({ setLoading, setSearchParams });
-
+  useEffect(() => {
+    if (user?.role === USER_ROLE.SUPPORT) {
+      if (createdById && !assignedToId && createdById !== user.id) {
+        updateParams({ assignedToId: user.id, page: '1' });
+      } else if (!createdById && assignedToId && assignedToId !== user.id) {
+        updateParams({ createdById: user.id, page: '1' });
+      }
+    }
+  }, [
+    createdById,
+    assignedToId,
+    user?.role,
+    user?.id,
+    searchParams,
+    updateParams,
+  ]);
   useEffect(() => {
     if (inputValue === searchQuery) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -131,7 +247,7 @@ export function Tickets() {
     const timeout = setTimeout(() => {
       updateParams({
         page: '1',
-        querySearch: inputValue,
+        searchQuery: inputValue,
       });
     }, 500);
     return () => clearTimeout(timeout);
@@ -168,11 +284,20 @@ export function Tickets() {
         </div>
         <div className="grid md:grid-cols-4 gap-4 min-w-0">
           <UserCombobox
+            label="Criador do Ticket"
             loading={loadingUsersCreators}
             searchQuery={searchQueryUsersCreators}
             setSearchQuery={setSearchQueryUsersCreators}
             users={UsersCreators}
             value={createdById}
+            blockOpen={true}
+            disabled={
+              user?.role === USER_ROLE.USER ||
+              (user?.role === USER_ROLE.SUPPORT &&
+                createdById === user.id &&
+                assignedToId.length > 0 &&
+                assignedToId !== user.id)
+            }
             onSelectChange={(userId) =>
               updateParams({
                 createdById: userId ?? '',
@@ -181,11 +306,19 @@ export function Tickets() {
             }
           />
           <UserCombobox
+            label="Responsável do Ticket"
             loading={loadingUsersAssigneds}
             searchQuery={searchQueryUsersAssigneds}
             setSearchQuery={setSearchQueryUsersAssigneds}
             users={UsersAssigneds}
             value={assignedToId}
+            blockOpen={true}
+            disabled={
+              user?.role === USER_ROLE.SUPPORT &&
+              assignedToId === user.id &&
+              createdById.length > 0 &&
+              createdById !== user.id
+            }
             onSelectChange={(userId) =>
               updateParams({
                 assignedToId: userId ?? '',
@@ -331,6 +464,8 @@ export function Tickets() {
         ticket.id.toString().includes(searchQuery)) &&
       (statusFilter === 'all' || statusFilter === ticket.status) &&
       (priorityFilter === 'all' || priorityFilter === ticket.priority) &&
+      (!createdById || createdById === ticket.createdById) &&
+      (!assignedToId || assignedToId === ticket.assignedToId) &&
       currentPage === 1
     ) {
       setTickets((prev) => {
@@ -342,7 +477,7 @@ export function Tickets() {
       });
       setTotal((prev) => prev + 1);
     } else {
-      setSearchParams({});
+      setSearchParams(new URLSearchParams());
     }
   }
 }

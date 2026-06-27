@@ -24,15 +24,48 @@ public class TicketRepository : ITicketRepository
     }
 
     public async Task<(List<TicketResponseDto> Tickets, int Total, StatusCountsDto? StatusCounts)> GetFilteredTicketsAsync
-        (int page, string? searchQuery, TicketStatus? status,
-        TicketPriority? priority, bool? withStatusCounts, string? createdById, string? assignedToId)
+         (int page, string? searchQuery, TicketStatus? status,
+         TicketPriority? priority, bool? withStatusCounts, string? createdById, string? assignedToId, string? supportId, bool createdOrAssigned = false, bool isSupport = false)
     {
-        var query = _context.Tickets.AsNoTracking()
-            .Where(t => (string.IsNullOrEmpty(searchQuery) || (t.Title.Contains(searchQuery) || t.Id.ToString().Contains(searchQuery)))
-            && (!status.HasValue || t.Status == status.Value)
-            && (!priority.HasValue || t.Priority == priority.Value)
-            && (string.IsNullOrEmpty(createdById) || t.CreatedById == createdById)
-            && (string.IsNullOrEmpty(assignedToId) || t.AssignedToId == assignedToId));
+        var query = _context.Tickets.AsNoTracking();
+
+        if (!string.IsNullOrEmpty(searchQuery))
+        {
+            query = query.Where(t =>
+                t.Title.Contains(searchQuery) ||
+                t.Id.ToString().Contains(searchQuery));
+        }
+
+        if (status.HasValue)
+            query = query.Where(t => t.Status == status);
+
+        if (priority.HasValue)
+            query = query.Where(t => t.Priority == priority);
+
+        if (createdOrAssigned)
+        {
+            query = query.Where(t =>
+                (!string.IsNullOrEmpty(createdById) && t.CreatedById == createdById) ||
+                (!string.IsNullOrEmpty(assignedToId) && t.AssignedToId == assignedToId)).Distinct();
+        }
+        else
+        {
+            if (supportId != createdById && supportId != assignedToId)
+            {
+                if (!string.IsNullOrEmpty(createdById))
+                    query = query.Where(t => t.CreatedById == createdById && t.AssignedToId == supportId);
+                if (!string.IsNullOrEmpty(assignedToId))
+                    query = query.Where(t => t.AssignedToId == assignedToId && t.CreatedById == createdById);
+            }
+
+            if (!string.IsNullOrEmpty(createdById))
+            {
+                query = query.Where(t => t.CreatedById == createdById);
+            }
+
+            if (!string.IsNullOrEmpty(assignedToId))
+                query = query.Where(t => t.AssignedToId == assignedToId);
+        }
 
         IQueryable<TicketResponseDto> dtoQuery;
 
@@ -55,6 +88,8 @@ public class TicketRepository : ITicketRepository
             .Skip((page - 1) * 5)
             .Take(5)
             .ToListAsync();
+
+        Console.WriteLine(tickets);
 
         int total = await dtoQuery.CountAsync();
 

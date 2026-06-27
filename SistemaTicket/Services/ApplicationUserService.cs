@@ -15,7 +15,7 @@ public class ApplicationUserService : IApplicationUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly AppDbContext _context;
-    public ApplicationUserService(UserManager<ApplicationUser> userManager, AppDbContext context)
+    public ApplicationUserService(UserManager<ApplicationUser> userManager, AppDbContext context, IAuthService authService)
     {
         _userManager = userManager;
         _context = context;
@@ -130,6 +130,66 @@ public class ApplicationUserService : IApplicationUserService
                 User = groupedStatus.GetValueOrDefault("user", 0)
             },
             Total = await query.CountAsync()
+        };
+    }
+
+    public async Task<ApplicationUserResponseDto> GetByIdAsync(string userId, UserRole role, string userSearchId)
+    {
+        var query = _userManager.Users
+            .AsNoTracking();
+
+        ApplicationUser? user = null;
+
+        if (role != UserRole.Admin && string.IsNullOrWhiteSpace(userSearchId))
+        {
+            throw new BadRequestException(new Dictionary<string, string[]>
+            { { "id", new[] { "userSearchId is required for non-admin users." } } });
+        }
+
+        if (role != UserRole.Admin)
+        {
+
+            user = await query.Where(u => u.CreatedTickets.Any(ct => ct.CreatedById == userSearchId && ct.AssignedToId == userId)).FirstOrDefaultAsync();
+            if (user == null && userId == userSearchId)
+            {
+                user = await query.Where(u => u.CreatedTickets.Any(ct => ct.CreatedById == userId)).FirstOrDefaultAsync();
+
+            }
+        }
+        if (user == null && role != UserRole.Admin)
+        {
+            user = await query.Where(u => u.AssignedTickets.Any(at => at.AssignedToId == userSearchId && at.CreatedById == userId)).FirstOrDefaultAsync();
+            if (user == null && userId == userSearchId)
+            {
+                user = await query.Where(u => u.CreatedTickets.Any(ct => ct.AssignedToId == userId)).FirstOrDefaultAsync();
+
+            }
+        }
+        if (role == UserRole.Admin)
+        {
+            query = query.Where(u => u.Id == userSearchId);
+            user = await query.FirstOrDefaultAsync();
+        }
+
+        if (user == null && role != UserRole.Admin)
+        {
+            throw new BadRequestException(new Dictionary<string, string[]>
+            { { "id", new[] { "you do not have authorization to view this user." } } });
+        }
+        if (user == null)
+        {
+            throw new NotFoundException("User not found.");
+        }
+        if (string.IsNullOrWhiteSpace(user.Email))
+            throw new InvalidOperationException("Email is null or empty.");
+        return new ApplicationUserResponseDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            CreatedAt = user.CreatedAt,
+            Role = user.Role,
+            IsActive = user.IsActive
         };
     }
 
@@ -346,13 +406,17 @@ public class ApplicationUserService : IApplicationUserService
         bool isAdmin = role == UserRole.Admin;
         List<ApplicationUserResponseDto>? users = null;
 
+        if (string.IsNullOrWhiteSpace(assignedToId) && role == UserRole.Support)
+        {
+            assignedToId = userId;
+        }
+
         var query = _userManager.Users.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(searchQueryUsers))
         {
             query = query.Where(u => u.Name.Contains(searchQueryUsers) || u.Email!.Contains(searchQueryUsers));
         }
-
         if (!string.IsNullOrWhiteSpace(assignedToId))
         {
             users = await query.Where(u => u.CreatedTickets
@@ -385,6 +449,12 @@ public class ApplicationUserService : IApplicationUserService
             }).Distinct().ToListAsync();
 
         }
+        if (!users.Any(u => u.Id == userId))
+        {
+            var me = await GetByIdAsync(userId, UserRole.Admin, userId);
+            users.Insert(0, me);
+        }
+
         return users;
     }
 
@@ -403,6 +473,11 @@ public class ApplicationUserService : IApplicationUserService
 
         bool isAdmin = role == UserRole.Admin;
         List<ApplicationUserResponseDto>? users = null;
+
+        if (string.IsNullOrWhiteSpace(createdById) && role == UserRole.Support)
+        {
+            createdById = userId;
+        }
 
         var query = _userManager.Users.AsNoTracking();
 
@@ -441,6 +516,12 @@ public class ApplicationUserService : IApplicationUserService
                 CreatedAt = u.CreatedAt,
                 IsActive = u.IsActive,
             }).Distinct().ToListAsync();
+        }
+
+        if (!users.Any(u => u.Id == userId) && role != UserRole.User)
+        {
+            var me = await GetByIdAsync(userId, UserRole.Admin, userId);
+            users.Insert(0, me);
         }
         return users;
     }

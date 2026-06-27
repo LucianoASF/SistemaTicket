@@ -68,13 +68,23 @@ public class TicketService : ITicketService
         };
     }
 
-    public async Task<PagedTicketsResponseDto> GetFilteredTicketsAsync(string userId, UserRole role, int page, string? searchQueryTickets,
-        string? searchQueryUsers, TicketStatus? status, TicketPriority? priority, bool? withStatusCounts, string? createdById, string? assignedToId)
+    public async Task<PagedTicketsResponseDto> GetFilteredTicketsAsync(string userId, UserRole role, int page, string? searchQuery,
+        TicketStatus? status, TicketPriority? priority, bool? withStatusCounts, string? createdById, string? assignedToId)
     {
-
+        if (!string.IsNullOrWhiteSpace(createdById) && !string.IsNullOrWhiteSpace(assignedToId) && role == UserRole.Support && userId != assignedToId && userId != createdById || role == UserRole.User && userId != createdById)
+        {
+            throw new BadRequestException(new Dictionary<string, string[]>() { { "assignedToId", ["you do not have authorization to view other users' tickets "] } });
+        }
+        bool createdOrAssigned = string.IsNullOrWhiteSpace(createdById) && string.IsNullOrWhiteSpace(assignedToId) && role == UserRole.Support;
+        if (createdOrAssigned)
+        {
+            createdById = userId;
+            assignedToId = userId;
+        }
 
         page = page < 1 ? 1 : page;
-        var filteredTickets = await _ticketRepository.GetFilteredTicketsAsync(page, searchQueryTickets, status, priority, withStatusCounts, createdById, assignedToId);
+
+        var filteredTickets = await _ticketRepository.GetFilteredTicketsAsync(page, searchQuery, status, priority, withStatusCounts, createdById, assignedToId, userId, createdOrAssigned, role == UserRole.Support);
 
         return new PagedTicketsResponseDto
         {

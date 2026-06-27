@@ -40,11 +40,11 @@ public class TicketController : AuthorizedApiControllerBase
     [Authorize]
     [HttpGet]
     public async Task<ActionResult<PagedTicketsResponseDto>> GetFilteredTicketsAsync(int page,
-        string? searchQueryTickets, string? searchQueryUsers, TicketStatus? status, TicketPriority? priority, bool? withStatusCounts, string? createdById, string? assignedToId)
+        string? searchQuery, TicketStatus? status, TicketPriority? priority, bool? withStatusCounts, string? createdById, string? assignedToId)
     {
         var userId = CurrentUserId;
         var role = CurrentUserRole;
-        return Ok(await _ticketService.GetFilteredTicketsAsync(userId, role, page, searchQueryTickets, searchQueryUsers, status, priority, withStatusCounts, createdById, assignedToId));
+        return Ok(await _ticketService.GetFilteredTicketsAsync(userId, role, page, searchQuery, status, priority, withStatusCounts, createdById, assignedToId));
     }
 
     [Authorize]

@@ -1,4 +1,15 @@
-﻿using SistemaTicket.Dtos.TicketComment;
+﻿// TODO: adiconar username na res´posta dos métodos
+// TODO: consertar as rotas de history
+// TODO: não deixar user que não é admin ver user/id
+// TODO: criar rota para o user  ver os proprios tickets ? verificar se não posso fazer isso com rota existente
+/* TODO: retornar os campos em tickethistory: OldPriority = th.OldPriority,
+NewPriority = th.NewPriority,
+            OldAssignedToId = th.OldAssignedToId,
+            NewAssignedToId = th.NewAssignedToId,
+            OldAssignedUserName = th.OldAssignedUser?.Name,
+            NewAssignedUserName = th.NewAssignedUser?.Name,*/
+
+using SistemaTicket.Dtos.TicketComment;
 using SistemaTicket.Entities;
 using SistemaTicket.Exceptions;
 using SistemaTicket.Repositories;
@@ -9,11 +20,13 @@ public class TicketCommentService : ITicketCommentService
 {
     private readonly ITicketCommentRepository _ticketCommentRepository;
     private readonly ITicketRepository _ticketRepository;
+    private readonly IApplicationUserService _applicationUserService;
 
-    public TicketCommentService(ITicketCommentRepository ticketCommentRepository, ITicketRepository ticketRepository)
+    public TicketCommentService(ITicketCommentRepository ticketCommentRepository, ITicketRepository ticketRepository, IApplicationUserService applicationUserService)
     {
         _ticketCommentRepository = ticketCommentRepository;
         _ticketRepository = ticketRepository;
+        _applicationUserService = applicationUserService;
     }
     public async Task<TicketCommentResponseDto> CreateAsync(TicketCommentRequestDto ticketCommentRequestDto, string userId, int ticketId, bool isUser)
     {
@@ -26,6 +39,7 @@ public class TicketCommentService : ITicketCommentService
             TicketId = ticketId
         };
         var response = await _ticketCommentRepository.CreateAsync(ticketComment);
+        //var userName = await _applicationUserService.GetNameByUserAsync(userId);
         return new TicketCommentResponseDto
         {
             Id = response.Id,
@@ -33,7 +47,7 @@ public class TicketCommentService : ITicketCommentService
             CreatedAt = response.CreatedAt,
             UserId = response.UserId,
             TicketId = response.TicketId,
-            UserName = response.User.Name
+            //UserName = userName
         };
     }
 

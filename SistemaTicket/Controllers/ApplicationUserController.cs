@@ -22,7 +22,7 @@ public class ApplicationUserController : AuthorizedApiControllerBase
     public async Task<ActionResult<ApplicationUserResponseDto>> CreateAsync(ApplicationUserCreateDto dto)
     {
         var result = await _applicationUserService.CreateAsync(dto);
-        return CreatedAtAction("GetUserWithTicketsById", new { id = result.Id }, result);
+        return CreatedAtAction("GetById", new { id = result.Id }, result);
     }
 
     [Authorize(Roles = nameof(UserRole.Admin))]
@@ -33,7 +33,16 @@ public class ApplicationUserController : AuthorizedApiControllerBase
     }
 
     [Authorize]
-    [HttpGet("{id}")]
+    [HttpGet("{userSearchId}")]
+    public async Task<ActionResult<ApplicationUserResponseDto>> GetByIdAsync(string userSearchId)
+    {
+        var role = CurrentUserRole;
+        var userId = CurrentUserId;
+        return Ok(await _applicationUserService.GetByIdAsync(userId, role, userSearchId));
+    }
+
+    [Authorize]
+    [HttpGet("{id}/tickets")]
     public async Task<ActionResult<ApplicationUserWithTicketsResponseDto>> GetUserWithTicketsByIdAsync(string id)
     {
         var userId = CurrentUserId;
@@ -81,7 +90,7 @@ public class ApplicationUserController : AuthorizedApiControllerBase
         return Ok(await _applicationUserService.GetOptionsAsync(searchQuery));
     }
 
-    [Authorize]
+    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Support)}")]
     [HttpGet("ticket-related-users-creators")]
     public async Task<ActionResult<List<ApplicationUserResponseDto>>> GetTicketRelatedUsersCreatorsAsync(
         string? searchQueryUsers, string? searchQueryTickets, TicketStatus? status, TicketPriority? priority, string? assignedToId)
@@ -91,7 +100,8 @@ public class ApplicationUserController : AuthorizedApiControllerBase
         var result = await _applicationUserService.GetTicketRelatedUsersCreatorsAsync(userId, role, searchQueryUsers, searchQueryTickets, status, priority, assignedToId);
         return Ok(result);
     }
-    [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Support)}")]
+
+    [Authorize]
     [HttpGet("ticket-related-users-assigneds")]
     public async Task<ActionResult<List<ApplicationUserResponseDto>>> GetTicketRelatedUsersAssignedsAsync(
         string? searchQueryUsers, string? searchQueryTickets, TicketStatus? status, TicketPriority? priority, string? createdById)

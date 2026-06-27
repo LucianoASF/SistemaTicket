@@ -2,13 +2,18 @@ import { useEffect, useState } from 'react';
 import { api } from '../axios/axios';
 import type { User } from '../types/user';
 import { useAuth } from '../contexts/useAuth';
-import { USER_ROLE } from '../types/role';
 import type { Params } from '../types/params';
+import { USER_ROLE } from '../types/role';
+import type { SetURLSearchParams } from 'react-router';
+
+type GetById = 'createdById' | 'assignedToId';
 
 export function useUserSearch(
-  url: string,
+  url?: string,
   searchQueryName: string = 'searchQuery',
   specificParams?: Params,
+  getById?: GetById,
+  SetSearchParams?: SetURLSearchParams,
 ) {
   const { user } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
@@ -18,31 +23,59 @@ export function useUserSearch(
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        if (!user) return;
-        setLoading(true);
         if (
-          USER_ROLE.ADMIN === user.role ||
-          (user.id === specificParams?.assignedToId &&
-            user.role === USER_ROLE.SUPPORT) ||
-          specificParams?.createdById == user.id
-        ) {
-          console.log('teste');
+          !user ||
+          !url ||
+          (url === '/users/options' && user.role !== USER_ROLE.ADMIN) ||
+          (url === '/users/ticket-related-users-creators' &&
+            (!specificParams?.assignedToId ||
+              specificParams?.assignedToId !== user.id) &&
+            user.role !== USER_ROLE.ADMIN) ||
+          (url === '/users/ticket-related-users-assigneds' &&
+            (!specificParams?.createdById ||
+              specificParams?.createdById !== user.id) &&
+            user.role !== USER_ROLE.ADMIN)
+        )
+          return;
+        setLoading(true);
+        const isById =
+          (getById === 'createdById' && specificParams?.createdById) ||
+          (getById === 'assignedToId' && specificParams?.assignedToId);
+
+        if (isById && users.length === 0) {
+          const response = await api.get<User>(url);
+          setUsers([response.data]);
+        } else {
           const response = await api.get<User[]>(url, {
             params: {
               [searchQueryName]: searchQuery || undefined,
               ...specificParams,
             },
           });
-          setUsers(response.data);
+
+          if (Array.isArray(response.data)) {
+            setUsers(response.data);
+          } else {
+            setUsers([response.data]);
+          }
         }
       } catch {
-        return;
+        if (SetSearchParams) SetSearchParams(new URLSearchParams());
       } finally {
         setLoading(false);
       }
     };
     fetchUsers();
-  }, [searchQuery, searchQueryName, specificParams, url, user]);
+  }, [
+    SetSearchParams,
+    getById,
+    searchQuery,
+    searchQueryName,
+    specificParams,
+    url,
+    user,
+    users.length,
+  ]);
 
   return { users, loading, searchQuery, setSearchQuery };
 }
