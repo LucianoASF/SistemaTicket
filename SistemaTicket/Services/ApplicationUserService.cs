@@ -15,7 +15,7 @@ public class ApplicationUserService : IApplicationUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly AppDbContext _context;
-    public ApplicationUserService(UserManager<ApplicationUser> userManager, AppDbContext context, IAuthService authService)
+    public ApplicationUserService(UserManager<ApplicationUser> userManager, AppDbContext context)
     {
         _userManager = userManager;
         _context = context;
@@ -25,8 +25,7 @@ public class ApplicationUserService : IApplicationUserService
         var existingUser = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == applicationUserCreateDto.Email && u.IsActive == false);
         if (existingUser != null)
         {
-            throw new BadRequestException(new Dictionary<string, string[]>
-            { { "Email", new[] { "to an inactivated user with this email. To activate this user, contact the system administrator." } } });
+            throw new BadRequestException("Esse email já está em uso por um usuário inativo. Para ativar este usuário, entre em contato com o administrador do sistema.");
         }
 
         var applicationUser = new ApplicationUser
@@ -43,16 +42,10 @@ public class ApplicationUserService : IApplicationUserService
 
         if (!result.Succeeded)
         {
-            var errors = result.Errors
-                .GroupBy(e => e.ToFieldName())
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Select(e => e.Description).ToArray()
-                );
-
-            throw new BadRequestException(errors);
+            var error = result.Errors.FirstOrDefault();
+            throw new BadRequestException(error?.ToPortugueseMessage() ?? "Erro ao criar o usuário.");
         }
-
+        Console.WriteLine(applicationUser);
         return new ApplicationUserResponseDto
         {
             Id = applicationUser.Id,
@@ -107,7 +100,7 @@ public class ApplicationUserService : IApplicationUserService
         foreach (var user in users)
         {
             if (string.IsNullOrWhiteSpace(user.Email))
-                throw new InvalidOperationException("Email is null or empty.");
+                throw new InvalidOperationException("O email do usuário é nulo ou vazio.");
 
             userDtos.Add(new ApplicationUserResponseDto
             {
@@ -142,8 +135,7 @@ public class ApplicationUserService : IApplicationUserService
 
         if (role != UserRole.Admin && string.IsNullOrWhiteSpace(userSearchId))
         {
-            throw new BadRequestException(new Dictionary<string, string[]>
-            { { "id", new[] { "userSearchId is required for non-admin users." } } });
+            throw new BadRequestException("O ID do usuário é obrigatório para usuários não administradores.");
         }
 
         if (role != UserRole.Admin)
@@ -173,15 +165,14 @@ public class ApplicationUserService : IApplicationUserService
 
         if (user == null && role != UserRole.Admin)
         {
-            throw new BadRequestException(new Dictionary<string, string[]>
-            { { "id", new[] { "you do not have authorization to view this user." } } });
+            throw new BadRequestException("Você não está autorizado a visualizar este usuário.");
         }
         if (user == null)
         {
-            throw new NotFoundException("User not found.");
+            throw new NotFoundException("Usuário não encontrado.");
         }
         if (string.IsNullOrWhiteSpace(user.Email))
-            throw new InvalidOperationException("Email is null or empty.");
+            throw new InvalidOperationException("O email do usuário é nulo ou vazio.");
         return new ApplicationUserResponseDto
         {
             Id = user.Id,
@@ -270,10 +261,10 @@ public class ApplicationUserService : IApplicationUserService
 
         if (response == null)
         {
-            throw new NotFoundException("User not found.");
+            throw new NotFoundException("Usuário não encontrado.");
         }
         if (string.IsNullOrWhiteSpace(response.User.Email))
-            throw new InvalidOperationException("Email is null or empty.");
+            throw new InvalidOperationException("O email do usuário é nulo ou vazio.");
 
         return response;
     }
@@ -283,7 +274,7 @@ public class ApplicationUserService : IApplicationUserService
         var name = await _userManager.Users.Where(u => u.Id == id && u.Role != UserRole.User).Select(u => u.Name).FirstOrDefaultAsync();
         if (name == null)
         {
-            throw new NotFoundException("Such user does not exist or cannot be assigned.");
+            throw new NotFoundException("O usuário não existe ou não pode ser atribuído.");
         }
         return name;
     }
@@ -293,12 +284,12 @@ public class ApplicationUserService : IApplicationUserService
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)
         {
-            throw new NotFoundException("User not found.");
+            throw new NotFoundException("Usuário não encontrado.");
         }
 
         if (!isAdmin && user.Role != applicationUserUpdateDto.Role)
         {
-            throw new BadRequestException(new Dictionary<string, string[]> { { "role", new[] { "you are not allowed to change the role." } } });
+            throw new BadRequestException("Você não está autorizado a alterar a função deste usuário.");
         }
 
         user.Name = applicationUserUpdateDto.Name;
@@ -313,19 +304,19 @@ public class ApplicationUserService : IApplicationUserService
             if (!string.IsNullOrWhiteSpace(applicationUserUpdateDto.Password))
             {
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                await _userManager.ResetPasswordAsync(user, token, applicationUserUpdateDto.Password);
+                var passwordResult = await _userManager.ResetPasswordAsync(user, token, applicationUserUpdateDto.Password);
+                if (!passwordResult.Succeeded)
+                {
+                    var error = passwordResult.Errors.FirstOrDefault();
+                    throw new BadRequestException(error?.ToPortugueseMessage() ?? "Erro ao atualizar a senha.");
+                }
             }
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
             {
-                var errors = result.Errors
-                    .GroupBy(e => e.ToFieldName())
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.Select(e => e.Description).ToArray()
-                    );
-                throw new BadRequestException(errors);
+                var error = result.Errors.FirstOrDefault();
+                throw new BadRequestException(error?.ToPortugueseMessage() ?? "Erro ao atualizar o usuário.");
             }
 
             await transaction.CommitAsync();
@@ -351,7 +342,7 @@ public class ApplicationUserService : IApplicationUserService
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)
         {
-            throw new NotFoundException("User not found.");
+            throw new NotFoundException("Usuário não encontrado.");
         }
 
         user.IsActive = false;
@@ -359,13 +350,8 @@ public class ApplicationUserService : IApplicationUserService
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
         {
-            var errors = result.Errors
-                .GroupBy(e => e.ToFieldName())
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Select(e => e.Description).ToArray()
-                );
-            throw new BadRequestException(errors);
+            var error = result.Errors.FirstOrDefault();
+            throw new BadRequestException(error?.ToPortugueseMessage() ?? "Erro ao atualizar o usuário.");
         }
     }
 
@@ -400,7 +386,7 @@ public class ApplicationUserService : IApplicationUserService
 
         if (role == UserRole.Support && userId != assignedToId)
         {
-            throw new BadRequestException(new Dictionary<string, string[]>() { { "assignedToId", ["you do not have authorization to view other users' tickets "] } });
+            throw new BadRequestException("Você não está autorizado a visualizar os tickets de outros usuários.");
         }
 
         bool isAdmin = role == UserRole.Admin;
@@ -464,11 +450,11 @@ public class ApplicationUserService : IApplicationUserService
     {
         if (role == UserRole.User && userId != createdById)
         {
-            throw new BadRequestException(new Dictionary<string, string[]>() { { "createdById", ["you do not have authorization to view other users' tickets "] } });
+            throw new BadRequestException("Você não está autorizado a visualizar os tickets de outros usuários.");
         }
         else if (role == UserRole.Support && userId != createdById)
         {
-            throw new BadRequestException(new Dictionary<string, string[]>() { { "createdById", ["you do not have authorization to view other users' tickets "] } });
+            throw new BadRequestException("Você não está autorizado a visualizar os tickets de outros usuários.");
         }
 
         bool isAdmin = role == UserRole.Admin;

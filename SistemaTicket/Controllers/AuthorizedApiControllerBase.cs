@@ -27,7 +27,7 @@ public abstract class AuthorizedApiControllerBase : ControllerBase
             var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
             if (string.IsNullOrEmpty(roleClaim) || !Enum.TryParse<UserRole>(roleClaim, out var role))
             {
-                throw new UnauthorizedException("User role is not specified.");
+                throw new UnauthorizedException("A função do usuário não está especificada.");
             }
             return role;
         }

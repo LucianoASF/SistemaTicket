@@ -22,44 +22,38 @@ builder.Services.AddControllers()
          options.JsonSerializerOptions.Converters.Add(
              new JsonStringEnumConverter());
      })
-    .ConfigureApiBehaviorOptions(options =>
+.ConfigureApiBehaviorOptions(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
     {
-        options.InvalidModelStateResponseFactory = context =>
-        {
-            var errors = context.ModelState
-                .Where(e =>
-                    e.Value!.Errors.Count > 0 &&
-                    e.Key.ToLowerInvariant() != "dto"
-                )
-                .ToDictionary(
-                    e => e.Key.Replace("$.", "").ToLowerInvariant(),
-                    e =>
-                    {
-                        var field = e.Key.Replace("$.", "");
-
-                        return e.Value!.Errors.Select(error =>
-                        {
-                            if (error.ErrorMessage.Contains("could not be converted to"))
-                            {
-                                return $"The field {field} has an invalid value.";
-                            }
-
-                            return error.ErrorMessage;
-                        }).ToList();
-                    }
-                );
-
-            var response = new
+        var firstError = context.ModelState
+            .Where(e =>
+                e.Value!.Errors.Count > 0 &&
+                e.Key.ToLowerInvariant() != "dto")
+            .Select(e =>
             {
-                message = "One or more validation errors occurred.",
-                traceId = context.HttpContext.TraceIdentifier,
-                errors
-            };
+                var field = e.Key.Replace("$.", "");
 
-            return new BadRequestObjectResult(response);
+                var error = e.Value!.Errors.First();
+
+                if (error.ErrorMessage.Contains("could not be converted to"))
+                {
+                    return $"O campo {field} tem um valor inválido.";
+                }
+
+                return error.ErrorMessage;
+            })
+            .FirstOrDefault();
+
+        var response = new
+        {
+            message = firstError ?? "Ocorreram um ou mais erros de validação.",
+            traceId = context.HttpContext.TraceIdentifier,
         };
 
-    });
+        return new BadRequestObjectResult(response);
+    };
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -137,7 +131,7 @@ builder.Services.AddAuthentication(options =>
 
             return context.Response.WriteAsJsonAsync(new
             {
-                message = "You are not authenticated.",
+                message = "Você não está autenticado",
                 traceId = context.HttpContext.TraceIdentifier
             });
         },
@@ -149,7 +143,7 @@ builder.Services.AddAuthentication(options =>
 
             return context.Response.WriteAsJsonAsync(new
             {
-                message = "You do not have permission to access this resource.",
+                message = "Você não tem permissão para acessar este recurso.",
                 traceId = context.HttpContext.TraceIdentifier
             });
         }

@@ -5,16 +5,19 @@ namespace SistemaTicket.Dtos.Ticket;
 
 public class TicketUpdateDto
 {
-    [Required]
-    [StringLength(200, MinimumLength = 5)]
+    [Required(ErrorMessage = "O título é obrigatório.")]
+    [StringLength(200, MinimumLength = 5, ErrorMessage = "O título deve ter entre 5 e 200 caracteres.")]
     public string Title { get; set; } = string.Empty;
 
-    [Required]
-    [MinLength(10)]
+    [Required(ErrorMessage = "A descrição é obrigatória.")]
+    [MinLength(10, ErrorMessage = "A descrição deve ter no mínimo 10 caracteres.")]
     public string Description { get; set; } = string.Empty;
+
     public string? AssignedToId { get; set; }
 
+    [EnumDataType(typeof(TicketPriority), ErrorMessage = "A prioridade informada é inválida.")]
     public TicketPriority? Priority { get; set; }
 
+    [EnumDataType(typeof(TicketStatus), ErrorMessage = "O status informado é inválido.")]
     public TicketStatus? Status { get; set; }
 }

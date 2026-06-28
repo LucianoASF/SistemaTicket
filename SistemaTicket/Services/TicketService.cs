@@ -23,12 +23,12 @@ public class TicketService : ITicketService
     {
         if (role == UserRole.User && ticketCreateDto.Priority.HasValue)
         {
-            throw new BadRequestException(new Dictionary<string, string[]>() { { "Priority", ["you do not have authorization to set the priority"] } });
+            throw new BadRequestException("Você não está autorizado a definir a prioridade.");
         }
 
         if (role != UserRole.Admin && ticketCreateDto.AssignedToId != null)
         {
-            throw new BadRequestException(new Dictionary<string, string[]>() { { "AssignedToId", ["you do not have authorization to set the assigned user"] } });
+            throw new BadRequestException("Você não está autorizado a definir o usuário atribuído.");
         }
         if (!ticketCreateDto.Priority.HasValue)
         {
@@ -73,7 +73,7 @@ public class TicketService : ITicketService
     {
         if (!string.IsNullOrWhiteSpace(createdById) && !string.IsNullOrWhiteSpace(assignedToId) && role == UserRole.Support && userId != assignedToId && userId != createdById || role == UserRole.User && userId != createdById)
         {
-            throw new BadRequestException(new Dictionary<string, string[]>() { { "assignedToId", ["you do not have authorization to view other users' tickets "] } });
+            throw new BadRequestException("Você não está autorizado a visualizar os tickets de outros usuários.");
         }
         bool createdOrAssigned = string.IsNullOrWhiteSpace(createdById) && string.IsNullOrWhiteSpace(assignedToId) && role == UserRole.Support;
         if (createdOrAssigned)
@@ -107,11 +107,11 @@ public class TicketService : ITicketService
         {
             if (ticket.Status != ticketUpdateDto.Status && ticketUpdateDto.Status.HasValue)
             {
-                throw new BadRequestException(new Dictionary<string, string[]>() { { "status", ["you do not have authorization to change the status"] } });
+                throw new BadRequestException("Você não está autorizado a alterar o status.");
             }
             if (ticket.Priority != ticketUpdateDto.Priority && ticketUpdateDto.Priority.HasValue)
             {
-                throw new BadRequestException(new Dictionary<string, string[]>() { { "priority", ["you do not have authorization to change the priority"] } });
+                throw new BadRequestException("Você não está autorizado a alterar a prioridade.");
             }
         }
         if (role != UserRole.Admin)
@@ -119,7 +119,7 @@ public class TicketService : ITicketService
 
             if (!string.IsNullOrWhiteSpace(ticketUpdateDto.AssignedToId))
             {
-                throw new BadRequestException(new Dictionary<string, string[]>() { { "AssignedToId", ["you do not have authorization to change the AssignedToId"] } });
+                throw new BadRequestException("Você não está autorizado a alterar o usuário atribuído.");
             }
             else
             {
@@ -181,7 +181,7 @@ public class TicketService : ITicketService
 
         if (ticketDetails == null)
         {
-            throw new NotFoundException("ticket not found");
+            throw new NotFoundException("Ticket não encontrado.");
         }
         return ticketDetails;
     }
@@ -199,11 +199,11 @@ public class TicketService : ITicketService
 
         if (ticketDetails == null)
         {
-            throw new NotFoundException("ticket not found");
+            throw new NotFoundException("Ticket não encontrado.");
         }
         if (ticketDetails.Ticket.CreatedById != userId && (role == UserRole.User || (role == UserRole.Support && ticketDetails.Ticket.AssignedToId != userId)))
         {
-            throw new ForbiddenException("you are not authorized to access this ticket");
+            throw new ForbiddenException("Você não está autorizado a acessar este ticket.");
         }
 
         return ticketDetails;
@@ -214,11 +214,11 @@ public class TicketService : ITicketService
         var ticket = await _ticketRepository.GetByIdAsync(id);
         if (ticket == null)
         {
-            throw new NotFoundException("ticket not found");
+            throw new NotFoundException("Ticket não encontrado.");
         }
         if (ticket.CreatedById != userId && (role == UserRole.User || (role == UserRole.Support && ticket.AssignedToId != userId)))
         {
-            throw new ForbiddenException("you are not authorized to access this ticket");
+            throw new ForbiddenException("Você não está autorizado a acessar este ticket.");
         }
         return ticket;
     }

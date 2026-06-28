@@ -26,7 +26,7 @@ public class AuthService : IAuthService
         var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == dto.Email && u.IsActive);
         if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
         {
-            throw new UnauthorizedException("Invalid email or password.");
+            throw new UnauthorizedException("Email e/ou senha inválidos.");
         }
 
         return await GenerateJwtTokenAsync(user);
@@ -37,17 +37,17 @@ public class AuthService : IAuthService
         var ExpireMinutesString = _config["Jwt:ExpireMinutes"];
         if (string.IsNullOrWhiteSpace(keyString))
         {
-            throw new InvalidOperationException("JWT key is not configured.");
+            throw new InvalidOperationException("A chave JWT não está configurada.");
         }
         else if (string.IsNullOrWhiteSpace(ExpireMinutesString) || !int.TryParse(ExpireMinutesString, out _))
         {
-            throw new InvalidOperationException("JWT expiration time is not configured or invalid.");
+            throw new InvalidOperationException("O tempo de expiração do JWT não está configurado ou é inválido.");
         }
         var key = Encoding.UTF8.GetBytes(keyString);
 
         if (string.IsNullOrWhiteSpace(user.Email))
         {
-            throw new InvalidOperationException("Email is invalid.");
+            throw new InvalidOperationException("O email do usuário é inválido.");
         }
 
         var claims = new List<Claim>
