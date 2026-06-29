@@ -23,6 +23,7 @@ import { RoleBadge } from '#components/badges/RoleBadge';
 import { cn, formatDate } from '#lib/utils.ts';
 import { useAuth } from '../../contexts/useAuth';
 import { Loading } from '#components/loadings/Loading';
+import { USER_ROLE } from '../../types/role';
 
 export function UserDetails() {
   const { user } = useAuth();
@@ -30,11 +31,12 @@ export function UserDetails() {
   const [isModelOpen, setIsModelOpen] = useState(false);
   const [data, setData] = useState<UserWithTickets>();
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('created');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await api.get<UserWithTickets>(`/users/${id}`);
+        const response = await api.get<UserWithTickets>(`/users/${id}/tickets`);
         setData(response.data);
         setLoading(false);
       } catch {
@@ -148,24 +150,40 @@ export function UserDetails() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 min-w-0">
           <Card>
-            <Tabs defaultValue="created">
+            <Tabs value={tab} onValueChange={setTab}>
               <CardHeader className="flex justify-between">
                 <TabsList>
                   <TabsTrigger value="created">
                     <Ticket className="h-4 w-4" />
                     Criados ({data.createdTicketsCount})
                   </TabsTrigger>
-                  <TabsTrigger value="assigned">
-                    <UserIcon className="h-4 w-4" />
-                    Atribuídos ({data.assignedTicketsCount})
-                  </TabsTrigger>
+
+                  {data.user.role !== USER_ROLE.USER && (
+                    <TabsTrigger value="assigned">
+                      <UserIcon className="h-4 w-4" />
+                      Atribuídos ({data.assignedTicketsCount})
+                    </TabsTrigger>
+                  )}
                 </TabsList>
-                <Button variant="outline">
-                  <Link className="flex gap-2" to={`/tickets`}>
+
+                <Button variant="outline" asChild>
+                  <Link
+                    className="flex gap-2"
+                    to={
+                      tab === 'created'
+                        ? `/tickets?createdById=${id}`
+                        : `/tickets?assignedToId=${id}`
+                    }
+                  >
                     <UserIcon className="size-4" />
-                    {user?.id === id
-                      ? 'Ver todos os seus tickets'
-                      : 'Ver todos os tickets do usuário'}
+
+                    {tab === 'created'
+                      ? user?.id === id
+                        ? 'Ver todos os seus tickets criados'
+                        : 'Ver todos os tickets criados do usuário'
+                      : user?.id === id
+                        ? 'Ver todos os tickets atribuídos a você'
+                        : 'Ver todos os tickets atribuídos ao usuário'}
                   </Link>
                 </Button>
               </CardHeader>
@@ -223,65 +241,67 @@ export function UserDetails() {
                     </div>
                   )}
                 </TabsContent>
-                <TabsContent value="assigned">
-                  {data.assignedTickets.length === 0 ? (
-                    <p className="py-8 text-center text-muted-foreground">
-                      Este usuário não possui tickets atribuídos.
-                    </p>
-                  ) : (
-                    <div className="rounded-lg border border-border overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Ticket</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Prioridade</TableHead>
-                            <TableHead>Autor</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {data.assignedTickets.map((ticket) => (
-                            <TableRow key={ticket.id}>
-                              <TableCell>
-                                <div>
-                                  <p className="font-medium max-w-75 sm:max-w-100  md:max-w-175 truncate">
-                                    {ticket.title}
-                                  </p>
-                                  <div>
-                                    <span className="text-xs text-muted-foreground mr-2">
-                                      {ticket.id}
-                                    </span>
-                                    <Link
-                                      to={`/tickets/${ticket.id}`}
-                                      className="text-muted-foreground font-medium  hover:text-primary hover:underline"
-                                    >
-                                      Ver mais
-                                    </Link>
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <StatusBadge status={ticket.status} />
-                              </TableCell>
-                              <TableCell>
-                                <PriorityBadge priority={ticket.priority} />
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <CustomAvatar
-                                    name={ticket.createdByName}
-                                    secondary
-                                  />
-                                  <span>{ticket.createdByName}</span>
-                                </div>
-                              </TableCell>
+                {data.user.role !== USER_ROLE.USER && (
+                  <TabsContent value="assigned">
+                    {data.assignedTickets.length === 0 ? (
+                      <p className="py-8 text-center text-muted-foreground">
+                        Este usuário não possui tickets atribuídos.
+                      </p>
+                    ) : (
+                      <div className="rounded-lg border border-border overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Ticket</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Prioridade</TableHead>
+                              <TableHead>Autor</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  )}
-                </TabsContent>
+                          </TableHeader>
+                          <TableBody>
+                            {data.assignedTickets.map((ticket) => (
+                              <TableRow key={ticket.id}>
+                                <TableCell>
+                                  <div>
+                                    <p className="font-medium max-w-75 sm:max-w-100  md:max-w-175 truncate">
+                                      {ticket.title}
+                                    </p>
+                                    <div>
+                                      <span className="text-xs text-muted-foreground mr-2">
+                                        {ticket.id}
+                                      </span>
+                                      <Link
+                                        to={`/tickets/${ticket.id}`}
+                                        className="text-muted-foreground font-medium  hover:text-primary hover:underline"
+                                      >
+                                        Ver mais
+                                      </Link>
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <StatusBadge status={ticket.status} />
+                                </TableCell>
+                                <TableCell>
+                                  <PriorityBadge priority={ticket.priority} />
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <CustomAvatar
+                                      name={ticket.createdByName}
+                                      secondary
+                                    />
+                                    <span>{ticket.createdByName}</span>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </TabsContent>
+                )}
               </CardContent>
             </Tabs>
           </Card>
