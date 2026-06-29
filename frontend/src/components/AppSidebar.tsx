@@ -1,19 +1,34 @@
 import { cn } from '#lib/utils';
-import { LayoutDashboard, LogOut, Ticket, Users } from 'lucide-react';
+import { LayoutDashboard, LogOut, Ticket, User, Users } from 'lucide-react';
 
 import { NavLink } from 'react-router';
 import { CustomAvatar } from './CustomAvatar';
 import { useAuth } from '../contexts/useAuth';
 import { Button } from './ui/button';
-
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Tickets', href: '/tickets', icon: Ticket },
-  { name: 'Usuários', href: '/users', icon: Users },
-];
+import { USER_ROLE } from '../types/role';
 
 export function AppSidebar() {
   const { user, logout } = useAuth();
+
+  const navigation = [
+    user?.role === USER_ROLE.ADMIN
+      ? { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }
+      : undefined,
+    user?.role === USER_ROLE.ADMIN
+      ? { name: 'Tickets', href: '/tickets', icon: Ticket }
+      : {
+          name: 'Seus Tickets',
+          href:
+            user?.role === USER_ROLE.SUPPORT
+              ? '/tickets'
+              : `/tickets?createdById=${user?.id}`,
+          icon: Ticket,
+        },
+    user?.role === USER_ROLE.ADMIN
+      ? { name: 'Usuários', href: '/users', icon: Users }
+      : undefined,
+    { name: 'Meu perfil', href: `/users/${user?.id}`, icon: User },
+  ];
 
   return (
     <aside className="flex flex-col justify-between h-screen w-64 border-r border-border bg-sidebar">
@@ -28,6 +43,7 @@ export function AppSidebar() {
       <nav className="flex-1 space-y-1 px-3 py-4">
         <div className="space-y-1">
           {navigation.map((item) => {
+            if (!item) return;
             const Icon = item.icon;
             return (
               <NavLink
