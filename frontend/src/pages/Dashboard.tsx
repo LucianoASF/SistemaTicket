@@ -20,8 +20,12 @@ import { Link } from 'react-router';
 import type { PagedTickets } from '../types/ticket';
 import { api } from '../axios/axios';
 import { Loading } from '#components/loadings/Loading';
+import { AccessDeniedOrNotFound } from '#components/AccessDeniedOrNotFound';
+import { USER_ROLE } from '../types/role';
+import { useAuth } from '../contexts/useAuth';
 
 export function Dashboard() {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<PagedTickets>({
     tickets: [],
@@ -38,6 +42,7 @@ export function Dashboard() {
       try {
         const response = await api.get<PagedTickets>(
           '/tickets?withStatusCounts=true',
+          { skip403And404Toast: true },
         );
         setData(response.data);
       } catch {
@@ -48,6 +53,17 @@ export function Dashboard() {
     };
     fetchTickets();
   }, []);
+
+  if (user?.role === USER_ROLE.USER) {
+    return (
+      <AccessDeniedOrNotFound
+        error="access denied"
+        to="/tickets"
+        pText="Você não tem permissão para visualizar o dashboard."
+        linkText="Ir para tickets"
+      />
+    );
+  }
 
   if (loading) {
     return <Loading variant="page" />;
@@ -89,7 +105,11 @@ export function Dashboard() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">Visão geral do sistema</p>
+          <p className="text-muted-foreground">
+            {user?.role === USER_ROLE.SUPPORT
+              ? 'Visão geral dos seus Tickets'
+              : 'Visão geral do sistema'}
+          </p>
         </div>
         <Button asChild>
           <Link to="/tickets">

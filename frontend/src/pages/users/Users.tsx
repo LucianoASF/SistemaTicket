@@ -33,6 +33,8 @@ import { USER_ROLE, type UserRole } from '../../types/role';
 import { RoleBadge } from '#components/badges/RoleBadge';
 import { UseUpdateParams } from '#hooks/useUpdateParams';
 import { Loading } from '#components/loadings/Loading';
+import { AccessDeniedOrNotFound } from '#components/AccessDeniedOrNotFound';
+import { useAuth } from '../../contexts/useAuth';
 
 export function Users() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -40,6 +42,7 @@ export function Users() {
   const searchQuery = searchParams.get('searchQuery') || '';
   const currentPage = Number(searchParams.get('page') || 1);
   const inactives = searchParams.get('inactives') || '';
+  const { user } = useAuth();
 
   const [data, setData] = useState<PagedUsers>({
     users: [],
@@ -63,6 +66,7 @@ export function Users() {
             role: roleFilter === 'all' ? undefined : roleFilter || undefined,
             inactives: inactives === 'all' ? undefined : inactives || undefined,
           },
+          skip403And404Toast: true,
         });
         setData(response.data);
       } catch {
@@ -112,6 +116,17 @@ export function Users() {
       value: data.roleCounts.user,
     },
   ];
+
+  if (user?.role !== USER_ROLE.ADMIN) {
+    return (
+      <AccessDeniedOrNotFound
+        error="access denied"
+        to={`/users/${user?.id}`}
+        pText="Você não tem permissão para visualizar os usuários."
+        linkText="Ir para meu perfil"
+      />
+    );
+  }
 
   const totalPages = Math.ceil(data.total / ITEMS_PER_PAGE);
 

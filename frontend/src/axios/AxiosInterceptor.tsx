@@ -19,9 +19,15 @@ export function AxiosInterceptor({ children }: AxiosInterceptorProps) {
         toast.error(error.response?.data?.message || 'Erro inesperado', {
           position: 'top-right',
         });
-      } else {
-        const message = error.response?.data?.message || 'Erro inesperado';
-        toast.error(message, { position: 'top-right' });
+      } else if (
+        !(
+          (error.response?.status === 403 || error.response?.status === 404) &&
+          error.config.skip403And404Toast
+        )
+      ) {
+        toast.error(error.response?.data?.message || 'Erro inesperado', {
+          position: 'top-right',
+        });
       }
       return Promise.reject(error);
     },

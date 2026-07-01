@@ -24,23 +24,36 @@ import { cn, formatDate } from '#lib/utils.ts';
 import { useAuth } from '../../contexts/useAuth';
 import { Loading } from '#components/loadings/Loading';
 import { USER_ROLE } from '../../types/role';
+import { AccessDeniedOrNotFound } from '#components/AccessDeniedOrNotFound';
+import { isAxiosError } from 'axios';
 
 export function UserDetails() {
   const { user } = useAuth();
   const { id } = useParams();
+  console.log(id);
   const [isModelOpen, setIsModelOpen] = useState(false);
   const [data, setData] = useState<UserWithTickets>();
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('created');
+  const [statusError, setStatusError] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await api.get<UserWithTickets>(`/users/${id}/tickets`);
+        const response = await api.get<UserWithTickets>(
+          `/users/${id}/tickets`,
+          { skip403And404Toast: true },
+        );
         setData(response.data);
+        setStatusError(0);
+      } catch (error) {
+        if (isAxiosError(error)) {
+          setStatusError(error.response?.status || 500);
+        } else {
+          setStatusError(500);
+        }
+      } finally {
         setLoading(false);
-      } catch {
-        return;
       }
     };
     fetchData();
@@ -50,19 +63,26 @@ export function UserDetails() {
     return <Loading variant="page" />;
   }
 
-  if (!data) {
+  if (statusError === 403) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <h1 className="text-2xl font-bold text-foreground">
-          Usuário não encontrado
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          O usuário que você está procurando não existe.
-        </p>
-        <Button asChild className="mt-4">
-          <Link to="/users">Voltar para usuários</Link>
-        </Button>
-      </div>
+      <AccessDeniedOrNotFound
+        error="access denied"
+        to={`/users/${user?.id}`}
+        pText="Você não tem permissão para visualizar um usuário que não seja você."
+        linkText="Ir para meu perfil"
+      />
+    );
+  }
+
+  if (statusError === 404 || !data) {
+    return (
+      <AccessDeniedOrNotFound
+        error="not found"
+        linkText="Ir para meu perfil"
+        pText="O usuário que você está procurando não existe."
+        to={`/users/${user?.id}`}
+        notFoundMessage="Usuário não encontrado"
+      />
     );
   }
 

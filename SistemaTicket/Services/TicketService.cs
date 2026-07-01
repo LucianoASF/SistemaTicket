@@ -71,6 +71,10 @@ public class TicketService : ITicketService
     public async Task<PagedTicketsResponseDto> GetFilteredTicketsAsync(string userId, UserRole role, int page, string? searchQuery,
         TicketStatus? status, TicketPriority? priority, bool? withStatusCounts, string? createdById, string? assignedToId)
     {
+        if (role == UserRole.User && withStatusCounts.HasValue && withStatusCounts.Value)
+        {
+            throw new ForbiddenException("Você não está autorizado a visualizar esse recurso.");
+        }
         if (!string.IsNullOrWhiteSpace(createdById) && !string.IsNullOrWhiteSpace(assignedToId) && role == UserRole.Support && userId != assignedToId && userId != createdById || role == UserRole.User && userId != createdById)
         {
             throw new BadRequestException("Você não está autorizado a visualizar os tickets de outros usuários.");

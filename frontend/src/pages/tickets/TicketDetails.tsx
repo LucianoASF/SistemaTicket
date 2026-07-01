@@ -34,6 +34,7 @@ import { useAuth } from '../../contexts/useAuth';
 import { USER_ROLE } from '../../types/role';
 import { Loading } from '#components/loadings/Loading';
 import { isAxiosError } from 'axios';
+import { AccessDeniedOrNotFound } from '#components/AccessDeniedOrNotFound';
 
 const priorityConfig = {
   [TICKET_PRIORITY.LOW]: 'baixa',
@@ -67,7 +68,9 @@ export function TicketDetails() {
   useEffect(() => {
     const fetchTicket = async () => {
       try {
-        const response = await api.get<TicketDetails>(`/tickets/${id}`);
+        const response = await api.get<TicketDetails>(`/tickets/${id}`, {
+          skip403And404Toast: true,
+        });
         setTicketDetails(response.data);
       } catch (error) {
         if (isAxiosError(error)) {
@@ -75,7 +78,6 @@ export function TicketDetails() {
         } else {
           setStatusError(500);
         }
-        return;
       } finally {
         setLoading(false);
       }
@@ -171,31 +173,24 @@ export function TicketDetails() {
 
   if (statusError === 403) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <h1 className="text-2xl font-bold text-destructive">Acesso Negado</h1>
-        <p className="mt-2 text-muted-foreground">
-          Você não tem permissão para visualizar este ticket.
-        </p>
-        <Button asChild className="mt-4">
-          <Link to="/tickets">Voltar para tickets</Link>
-        </Button>
-      </div>
+      <AccessDeniedOrNotFound
+        error="access denied"
+        to="/tickets"
+        pText="Você não tem permissão para visualizar este ticket."
+        linkText="Ir para tickets"
+      />
     );
   }
 
   if (statusError === 404 || !ticketDetails) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <h1 className="text-2xl font-bold text-foreground">
-          Ticket não encontrado
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          O ticket que você está procurando não existe.
-        </p>
-        <Button asChild className="mt-4">
-          <Link to="/tickets">Voltar para tickets</Link>
-        </Button>
-      </div>
+      <AccessDeniedOrNotFound
+        error="not found"
+        to="/tickets"
+        pText="O ticket que você está procurando não existe."
+        linkText="Ir para tickets"
+        notFoundMessage="Ticket não encontrado"
+      />
     );
   }
 

@@ -11,7 +11,7 @@ export function AppSidebar() {
   const { user, logout } = useAuth();
 
   const navigation = [
-    user?.role === USER_ROLE.ADMIN
+    user?.role !== USER_ROLE.USER
       ? { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }
       : undefined,
     user?.role === USER_ROLE.ADMIN
@@ -57,6 +57,7 @@ export function AppSidebar() {
                       : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                   )
                 }
+                end={item.href === '/users'}
               >
                 <Icon />
                 {item.name}
