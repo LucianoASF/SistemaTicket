@@ -42,7 +42,15 @@ public class TicketRepository : ITicketRepository
         if (priority.HasValue)
             query = query.Where(t => t.Priority == priority);
 
-        if (createdOrAssigned)
+        if (!isSupport)
+        {
+            if (!string.IsNullOrEmpty(createdById))
+                query = query.Where(t => t.CreatedById == createdById);
+            if (!string.IsNullOrEmpty(assignedToId))
+                query = query.Where(t => t.AssignedToId == assignedToId);
+        }
+
+        else if (createdOrAssigned)
         {
             query = query.Where(t =>
                 (!string.IsNullOrEmpty(createdById) && t.CreatedById == createdById) ||
@@ -54,8 +62,8 @@ public class TicketRepository : ITicketRepository
             {
                 if (!string.IsNullOrEmpty(createdById))
                     query = query.Where(t => t.CreatedById == createdById && t.AssignedToId == supportId);
-                if (!string.IsNullOrEmpty(assignedToId))
-                    query = query.Where(t => t.AssignedToId == assignedToId && t.CreatedById == createdById);
+                else if (!string.IsNullOrEmpty(assignedToId))
+                    query = query.Where(t => t.AssignedToId == assignedToId && t.CreatedById == supportId);
             }
 
             if (!string.IsNullOrEmpty(createdById))
@@ -88,8 +96,6 @@ public class TicketRepository : ITicketRepository
             .Skip((page - 1) * 5)
             .Take(5)
             .ToListAsync();
-
-        Console.WriteLine(tickets);
 
         int total = await dtoQuery.CountAsync();
 
