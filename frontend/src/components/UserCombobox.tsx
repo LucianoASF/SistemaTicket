@@ -111,7 +111,6 @@ export function UserCombobox({
               onValueChange={setSearchQuery}
               value={searchQuery}
               disabled={disabled}
-              // className={disabled && 'text-mu'}
               placeholder="Buscar usuário..."
             />
             <CommandList>

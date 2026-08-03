@@ -16,19 +16,6 @@ public class ExceptionMiddleware
         {
             await _next(context);
         }
-        catch (ErrorsAppException ex)
-        {
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = StatusCodes.Status400BadRequest;
-
-            var response = new Dictionary<string, object>
-            {
-                ["message"] = ex.Message,
-                ["traceId"] = context.TraceIdentifier,
-                ["errors"] = ex.Errors
-            };
-            await context.Response.WriteAsJsonAsync(response);
-        }
         catch (Exception ex)
         {
             context.Response.ContentType = "application/json";
@@ -42,7 +29,7 @@ public class ExceptionMiddleware
             };
             var response = new Dictionary<string, object>
             {
-                ["message"] = context.Response.StatusCode == 500 ? "Internal Server Error" : ex.Message,
+                ["message"] = context.Response.StatusCode == 500 ? "Erro interno do servidor" : ex.Message,
                 ["traceId"] = context.TraceIdentifier,
             };
 

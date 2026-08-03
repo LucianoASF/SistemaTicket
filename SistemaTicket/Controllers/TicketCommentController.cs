@@ -24,26 +24,9 @@ public class TicketCommentController : AuthorizedApiControllerBase
         var userId = CurrentUserId;
         var isUser = IsUser;
         var result = await _ticketCommentService.CreateAsync(ticketCommentRequestDto, userId, ticketId, isUser);
-        return CreatedAtAction("GetById", new { id = result.Id, ticketId = ticketId }, result);
+        return StatusCode(201, result);
     }
 
-    [HttpGet]
-    public async Task<ActionResult<List<TicketCommentResponseDto>>> GetAllByTicketAsync(int ticketId, [FromQuery] int page)
-    {
-        var userId = CurrentUserId;
-        var isUser = IsUser;
-        var result = await _ticketCommentService.GetAllByTicketAsync(ticketId, userId, isUser, page);
-        return Ok(result);
-    }
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult<TicketCommentResponseDto>> GetByIdAsync(int id, int ticketId)
-    {
-        var userId = CurrentUserId;
-        var isUser = IsUser;
-        var result = await _ticketCommentService.GetByIdAsync(id, ticketId, userId, isUser);
-        return Ok(result);
-    }
 
     [HttpPut("{id}")]
     public async Task<ActionResult<TicketCommentResponseDto>> UpdateAsync(TicketCommentRequestDto dto, int id, int ticketId)

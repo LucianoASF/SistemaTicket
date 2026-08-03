@@ -10,6 +10,6 @@ public class LoginRequestDto
     public string Email { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "A senha é obrigatória.")]
-    [StringLength(60, MinimumLength = 6, ErrorMessage = "A senha deve ter entre 6 e 60 caracteres.")]
+    [StringLength(60, MinimumLength = 6, ErrorMessage = "A senha deve ter entre 6 e 60 caracteres")]
     public string Password { get; set; } = string.Empty;
 }
