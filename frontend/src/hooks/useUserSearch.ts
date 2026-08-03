@@ -19,6 +19,7 @@ export function useUserSearch(
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -48,7 +49,7 @@ export function useUserSearch(
         } else {
           const response = await api.get<User[]>(url, {
             params: {
-              [searchQueryName]: searchQuery || undefined,
+              [searchQueryName]: debouncedSearchQuery || undefined,
               ...specificParams,
             },
           });
@@ -68,6 +69,7 @@ export function useUserSearch(
     fetchUsers();
   }, [
     SetSearchParams,
+    debouncedSearchQuery,
     getById,
     searchQuery,
     searchQueryName,
@@ -76,6 +78,14 @@ export function useUserSearch(
     user,
     users.length,
   ]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
 
   return { users, loading, searchQuery, setSearchQuery };
 }
