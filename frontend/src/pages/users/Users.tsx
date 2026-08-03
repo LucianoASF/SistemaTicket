@@ -21,7 +21,7 @@ import { Link, useSearchParams } from 'react-router';
 import { CustomAvatar } from '#components/CustomAvatar';
 import { ModalUser } from '#components/modals/ModalUser';
 import { api } from '../../axios/axios';
-import type { PagedUsers } from '../../types/user';
+import type { PagedUsers, User } from '../../types/user';
 import {
   Select,
   SelectContent,
@@ -129,6 +129,25 @@ export function Users() {
   }
 
   const totalPages = Math.ceil(data.total / ITEMS_PER_PAGE);
+
+  function handleUserCreate(user: User) {
+    if (!inactives && !searchQuery && !roleFilter) {
+      setData((prev) => ({
+        ...prev,
+        users: [user, ...prev.users],
+        roleCounts: {
+          ...prev.roleCounts,
+          [user.role.toLocaleLowerCase()]:
+            prev.roleCounts[
+              user.role.toLocaleLowerCase() as Uncapitalize<UserRole>
+            ] + 1,
+        },
+        total: prev.total + 1,
+      }));
+    } else {
+      setSearchParams(new URLSearchParams());
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -296,7 +315,11 @@ export function Users() {
           </div>
         </div>
       </div>
-      <ModalUser open={isModelOpen} onOpenChange={setIsModelOpen} />
+      <ModalUser
+        open={isModelOpen}
+        onOpenChange={setIsModelOpen}
+        onSuccess={(user) => handleUserCreate(user)}
+      />
     </div>
   );
 }

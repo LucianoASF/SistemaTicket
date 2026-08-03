@@ -22,7 +22,7 @@ public class ApplicationUserController : AuthorizedApiControllerBase
     public async Task<ActionResult<ApplicationUserResponseDto>> CreateAsync(ApplicationUserCreateDto dto)
     {
         var result = await _applicationUserService.CreateAsync(dto);
-        return CreatedAtAction("GetById", new { id = result.Id }, result);
+        return CreatedAtAction("GetById", new { userSearchId = result.Id }, result);
     }
 
     [Authorize(Roles = nameof(UserRole.Admin))]

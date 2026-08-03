@@ -8,6 +8,12 @@ export interface User {
   role: UserRole;
   createdAt: Date;
 }
+export interface UserForm {
+  name: string;
+  email: string;
+  role: UserRole;
+  password: string;
+}
 
 export interface UserWithTickets {
   user: User;
