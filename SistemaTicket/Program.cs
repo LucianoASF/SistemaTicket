@@ -166,8 +166,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
-        policy
-            .WithOrigins("http://localhost:5173")
+        policy.WithOrigins(builder.Configuration["FrontendUrl"]!)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -201,5 +200,11 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
 
 app.Run();
