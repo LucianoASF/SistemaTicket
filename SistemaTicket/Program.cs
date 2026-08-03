@@ -180,6 +180,9 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
 
+    var db = services.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+
     await SeedData.InitializeAsync(services);
 }
 
@@ -201,10 +204,5 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-}
 
 app.Run();
