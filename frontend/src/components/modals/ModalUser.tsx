@@ -20,7 +20,7 @@ import {
 import { useState } from 'react';
 import type { User, UserForm } from '../../types/user';
 import { useAuth } from '../../contexts/useAuth';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   modalUserSchema,
@@ -49,6 +49,7 @@ export function ModalUser({
 
   const auth = useAuth();
   const userRole = auth.user!.role;
+  const adminEditintHimself = auth.user!.id === user?.id;
   const {
     register,
     handleSubmit,
@@ -62,16 +63,17 @@ export function ModalUser({
 
   function setValues() {
     const baseValues = {
+      id: user?.id,
       isEditing: isEditing,
       userRole: userRole,
       name: user?.name || '',
       email: user?.email || '',
       password: user?.password || '',
     };
-    if (user?.role === USER_ROLE.ADMIN) {
+    if (userRole === USER_ROLE.ADMIN) {
       return {
         ...baseValues,
-        role: user?.role || '',
+        role: user?.role,
       };
     }
     return baseValues;
@@ -84,6 +86,7 @@ export function ModalUser({
 
   async function onSubmit(data: ModalUserFormInputs) {
     const dataToSend: Omit<ModalUserFormInputs, 'isEditing' | 'userRole'> = {
+      id: data.id,
       name: data.name,
       email: data.email,
       password: data.password,
@@ -106,6 +109,10 @@ export function ModalUser({
     }
   }
 
+  const onError = (errors: FieldErrors<UserForm>) => {
+    console.log(errors);
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleCancel}>
       <DialogContent>
@@ -118,14 +125,14 @@ export function ModalUser({
             {isEditing ? 'editar o' : 'criar um novo'} usuário.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit, onError)}>
           <fieldset>
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="name">Nome</FieldLabel>
                 <Input
                   id="name"
-                  placeholder="Digite o nome do usuário"
+                  placeholder="Digite o nome"
                   {...register('name')}
                 />
                 <FieldError>{errors.name?.message}</FieldError>
@@ -134,7 +141,7 @@ export function ModalUser({
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
                   id="email"
-                  placeholder="Digite o email do usuário"
+                  placeholder="Digite o email"
                   type="email"
                   {...register('email')}
                 />
@@ -146,8 +153,10 @@ export function ModalUser({
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Sua senha"
-                    {...register('password')}
+                    placeholder="Digite a senha"
+                    {...register('password', {
+                      setValueAs: (value) => (value === '' ? undefined : value),
+                    })}
                   />
                   <Button
                     type="button"
@@ -167,7 +176,7 @@ export function ModalUser({
               </Field>
 
               <>
-                {!isEditing && (
+                {userRole === USER_ROLE.ADMIN && !adminEditintHimself && (
                   <Field>
                     <FieldLabel id="role">Função</FieldLabel>
                     <Controller
@@ -202,7 +211,7 @@ export function ModalUser({
             </FieldGroup>
 
             <DialogFooter className="mt-4">
-              <Button variant="outline" onClick={handleCancel}>
+              <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancelar
               </Button>
               <Button disabled={isSubmitting}>

@@ -18,5 +18,5 @@ public class ApplicationUserUpdateDto
     public string? Password { get; set; }
 
     [EnumDataType(typeof(UserRole), ErrorMessage = "O cargo informado é inválido.")]
-    public UserRole Role { get; set; }
+    public UserRole? Role { get; set; }
 }

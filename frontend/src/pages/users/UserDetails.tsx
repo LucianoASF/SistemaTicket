@@ -18,7 +18,7 @@ import { PriorityBadge } from '#components/badges/PriorityBadge';
 import { Separator } from '#components/ui/separator';
 import { ModalUser } from '#components/modals/ModalUser';
 import { api } from '../../axios/axios';
-import type { UserWithTickets } from '../../types/user';
+import { type User, type UserWithTickets } from '../../types/user';
 import { RoleBadge } from '#components/badges/RoleBadge';
 import { cn, formatDate } from '#lib/utils.ts';
 import { useAuth } from '../../contexts/useAuth';
@@ -86,6 +86,19 @@ export function UserDetails() {
     );
   }
 
+  async function handleModalOpen() {
+    try {
+      const response = await api.get<User>(`/users/${data?.user.id}`);
+      setData((prev) => {
+        if (!prev) return prev;
+        return { ...prev, user: response.data };
+      });
+      setIsModelOpen(true);
+    } catch {
+      return;
+    }
+  }
+
   const ticketsStats = [
     {
       title: 'Total de Tickets',
@@ -133,7 +146,7 @@ export function UserDetails() {
             </span>
           </div>
         </div>
-        <Button variant="outline" onClick={() => setIsModelOpen(true)}>
+        <Button variant="outline" onClick={handleModalOpen}>
           <Edit className="h-4 w-4 mr-2" />
           Editar
         </Button>
@@ -171,8 +184,8 @@ export function UserDetails() {
         <div className="lg:col-span-2 min-w-0">
           <Card>
             <Tabs value={tab} onValueChange={setTab}>
-              <CardHeader className="flex justify-between">
-                <TabsList>
+              <CardHeader className="xl:flex xl:justify-between">
+                <TabsList className="m-auto">
                   <TabsTrigger value="created">
                     <Ticket className="h-4 w-4" />
                     Criados ({data.createdTicketsCount})
@@ -369,6 +382,12 @@ export function UserDetails() {
         user={data.user}
         open={isModelOpen}
         onOpenChange={setIsModelOpen}
+        onSuccess={(user) =>
+          setData((prev) => {
+            if (!prev) return prev;
+            return { ...prev, user: user };
+          })
+        }
       />
     </div>
   );

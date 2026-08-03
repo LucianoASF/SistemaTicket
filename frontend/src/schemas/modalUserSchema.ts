@@ -14,8 +14,8 @@ const userObject = z.object({
     .max(256, 'Email deve ter no máximo 256 caracteres'),
   password: z
     .string()
-    .min(6, 'Senha deve ter pelo menos 6 caracteres')
-    .max(60, 'Senha deve ter no máximo 60 caracteres')
+    .min(6, 'A Senha deve ter pelo menos 6 caracteres')
+    .max(60, 'A Senha deve ter no máximo 60 caracteres')
     .regex(/[A-Z]/, 'A senha deve ter pelo menos uma letra maiúscula')
     .regex(/[a-z]/, 'A senha deve ter pelo menos uma letra minúscula')
     .regex(/[0-9]/, 'A senha deve ter pelo menos um número')
@@ -53,6 +53,15 @@ function checkIfIdIsDefined(data: UserData, ctx: z.RefinementCtx) {
     });
   }
 }
+function checkIfPassordIsDefined(data: UserData, ctx: z.RefinementCtx) {
+  if (data.password === undefined) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'A senha é obrigatória.',
+      path: ['password'],
+    });
+  }
+}
 
 function validade(data: UserData, ctx: z.RefinementCtx) {
   if (data.isEditing) {
@@ -68,6 +77,7 @@ function validade(data: UserData, ctx: z.RefinementCtx) {
       });
     }
     checkIfIdIsUndefined(data, ctx);
+    checkIfPassordIsDefined(data, ctx);
   }
 }
 

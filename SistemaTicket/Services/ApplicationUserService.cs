@@ -287,15 +287,12 @@ public class ApplicationUserService : IApplicationUserService
             throw new NotFoundException("Usuário não encontrado.");
         }
 
-        if (!isAdmin && user.Role != applicationUserUpdateDto.Role)
-        {
-            throw new BadRequestException("Você não está autorizado a alterar a função deste usuário.");
-        }
+
 
         user.Name = applicationUserUpdateDto.Name;
         user.Email = applicationUserUpdateDto.Email;
         user.UserName = applicationUserUpdateDto.Email;
-        user.Role = applicationUserUpdateDto.Role;
+        user.Role = isAdmin ? applicationUserUpdateDto.Role ?? user.Role : user.Role;
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -327,7 +324,7 @@ public class ApplicationUserService : IApplicationUserService
                 Name = user.Name,
                 Email = user.Email,
                 CreatedAt = user.CreatedAt,
-                Role = applicationUserUpdateDto.Role,
+                Role = user.Role,
                 IsActive = user.IsActive
             };
         }
