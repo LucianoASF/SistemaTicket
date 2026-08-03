@@ -134,7 +134,7 @@ export function Users() {
     if (!inactives && !searchQuery && !roleFilter) {
       setData((prev) => ({
         ...prev,
-        users: [user, ...prev.users],
+        users: [user, ...prev.users].slice(0, ITEMS_PER_PAGE),
         roleCounts: {
           ...prev.roleCounts,
           [user.role.toLocaleLowerCase()]:
@@ -283,8 +283,8 @@ export function Users() {
           <p>
             {' '}
             Mostrando {(currentPage - 1) * ITEMS_PER_PAGE + 1} a{' '}
-            {Math.min(currentPage * ITEMS_PER_PAGE, data.users.length)} de{' '}
-            {data.users.length} usuários
+            {Math.min(currentPage * ITEMS_PER_PAGE, data.total)} de {data.total}{' '}
+            usuários
           </p>
           <div className="flex gap-2 items-center justify-center">
             <Button
